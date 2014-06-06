@@ -1,0 +1,13 @@
+[{
+    "version": 1.0,
+    "timestampUTC": "@@DATE@@",
+    "status" : {
+        "name": "Enable Docker",
+        "operation": "Enabling Docker",
+        "status": "success",
+        "formattedMessage": {
+            "Lang": "en",
+            "Message": "Enabling Docker Completed."
+        }
+    }
+}]

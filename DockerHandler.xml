@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ExtensionImage xmlns="http://schemas.microsoft.com/windowsazure"  xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <ProviderNameSpace>MSOpenTech.Extensions</ProviderNameSpace>
+  <Type>DockerExtension</Type>
+  <Version>0.3.0.0</Version>
+  <Label>Docker Extension</Label>
+  <HostingResources>VmRole</HostingResources>
+  <MediaLink>http://jlmpublishing.blob.core.windows.net/extensions/docker-handler3.zip</MediaLink>
+  <!-- <Certificate/> -->
+  <!-- <Endpoints/> -->
+  <!-- <PublicConfigurationSchema/> -->
+  <!-- <PrivateConfigurationSchema/> -->
+  <Description>Docker Extension</Description>
+  <PublisherName>Microsoft Open Technologies</PublisherName>
+  <!-- <LocalResources/> -->
+  <!-- <BlockRoleUponFailure>false</BlockRoleUponFailure> -->
+  <IsInternalExtension>true</IsInternalExtension>
+  <!-- <SampleConfig/> -->
+  <Eula>http://www.contoso.com/42588280809/eula</Eula>
+  <PrivacyUri>http://www.contoso.com/42588280809/privacy</PrivacyUri>
+  <HomepageUri>http://www.contoso.com/42588280809/homepage</HomepageUri>
+  <IsJsonExtension>true</IsJsonExtension> 
+</ExtensionImage>

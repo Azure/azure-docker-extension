@@ -1,0 +1,22 @@
+example commands
+
+zip:
+zip docker-handler.zip ./scripts/*.sh ./scripts/*.json HandlerManifest.json
+
+upload:
+azure storage blob upload -a <stg_accnt> -k '<stg_key>' ./docker-handler.zip extensions docker-handler.zip 
+
+publish:
+curl -E <mng_pem> https://management.core.windows.net/<sub_id>/services/extensions -d @./DockerHandler.xml -H "x-ms-version: 2014-05-01" -H "Content-Type:application/xml" -v
+
+update:
+curl -E <mng_pem> "https://management.core.windows.net/<sub_id>/services/extensions?action=update" -d @./DockerHandler.xml -H "x-ms-version: 2014-05-01" -H "Content-Type:application/xml" -v -X PUT
+
+get role:
+curl -E <mng_pem> https://management.core.windows.net/<sub_id>/services/hostedservices/<vm_name>/deployments/<vm_name>/roles/<vm_name> -H "x-ms-version: 2014-05-01"
+
+update role:
+curl -X PUT -E <mng_pem> https://management.core.windows.net/<sub_id>/services/hostedservices/<vm_name>/deployments/<vm_name>/roles/<vm_name> -H "x-ms-version: 2014-05-01" -d @./role.xml -H "Content-Type:application/xml"
+
+get deployment:
+curl -E <mng_pem> https://management.core.windows.net/<sub_id>/services/hostedservices/<vm_name>/deploymentslots/production -H "x-ms-version: 2014-05-01"
