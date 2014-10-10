@@ -22,6 +22,22 @@ IFS=$'\n\t'
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
+distrib_id=$(awk -F'=' '{if($1=="DISTRIB_ID")print $2; }' /etc/*-release);
+
+if [ $distrib_id == "" ]; then
+	echo "Error reading DISTRIB_ID"
+	exit 1
+elif [ $distrib_id == "Ubuntu" ]; then
+	echo "This is Ubuntu."
+elif [ $distrib_id == "CoreOS" ]; then
+	echo "This is CoreOS."
+	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/ }
+	type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
+else
+	echo "Unsupported Linux distributive."
+	exit 1
+fi
+
 function json_val () { 
     python -c 'import json,sys;obj=json.load(sys.stdin);print obj'$1''; 
 }
@@ -82,14 +98,23 @@ port=$(cat $config | json_val \
 
 echo Docker port: $port
 
-echo "Setting up /etc/default/docker.io"
-cat <<EOF > /etc/default/docker.io
-DOCKER="/usr/local/bin/docker"
-DOCKER_OPTS="--tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port"
-EOF
+if [ $distrib_id == "Ubuntu" ]; then
+    echo "Setting up /etc/default/docker.io"
+    cat <<EOF > /etc/default/docker.io
+    DOCKER="/usr/local/bin/docker"
+    DOCKER_OPTS="--tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port"
+    EOF
 
-echo "Starting Docker"
-update-rc.d docker.io defaults
-service docker.io restart
+    echo "Starting Docker"
+    update-rc.d docker.io defaults
+    service docker.io restart
+elif [ $distrib_id == "CoreOS" ]; then
+    sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
+    systemctl daemon-reload
+    systemctl restart docker
+else
+	echo "Unsupported Linux distributive."
+	exit 1
+fi
 
 cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status

@@ -22,7 +22,23 @@ IFS=$'\n\t'
 
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
-function json_val () { 
+distrib_id=$(awk -F'=' '{if($1=="DISTRIB_ID")print $2; }' /etc/*-release);
+
+if [ $distrib_id == "" ]; then
+	echo "Error reading DISTRIB_ID"
+	exit 1
+elif [ $distrib_id == "Ubuntu" ]; then
+	echo "This is Ubuntu."
+elif [ $distrib_id == "CoreOS" ]; then
+	echo "This is CoreOS."
+	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/ }
+	type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
+else
+	echo "Unsupported Linux distributive."
+	exit 1
+fi
+
+function json_val () {
     python -c 'import json,sys;obj=json.load(sys.stdin);print obj'$1''; 
 }
 
@@ -47,12 +63,20 @@ status=$statusdir/$statusfile
 cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
 
 
-echo "Installing Docker"
+echo "Installing Docker..."
 
-apt-get update
-apt-get install -y docker.io
-wget https://get.docker.io/builds/Linux/x86_64/docker-latest.tgz
-tar -xzvf docker-latest.tgz -C /
-rm docker-latest.tgz
+if [ $distrib_id == "Ubuntu" ]; then
+	apt-get update
+    apt-get install -y docker.io
+    wget https://get.docker.io/builds/Linux/x86_64/docker-latest.tgz
+    tar -xzvf docker-latest.tgz -C /
+    rm docker-latest.tgz
+elif [ $distrib_id == "CoreOS" ]; then
+	echo "Copy /usr/lib/systemd/system/docker.service --> /etc/systemd/system/"
+	cp /usr/lib/systemd/system/docker.service /etc/systemd/system/
+else
+	echo "Unsupported Linux distributive."
+	exit 1
+fi
 
 echo "Done Installing Docker"
