@@ -31,10 +31,10 @@ elif [ $distrib_id == "Ubuntu" ]; then
 	echo "This is Ubuntu."
 elif [ $distrib_id == "CoreOS" ]; then
 	echo "This is CoreOS."
-	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/ }
+	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/; }
 	type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
 else
-	echo "Unsupported Linux distributive."
+	echo "Unsupported Linux distribution."
 	exit 1
 fi
 
@@ -75,8 +75,9 @@ elif [ $distrib_id == "CoreOS" ]; then
 	echo "Copy /usr/lib/systemd/system/docker.service --> /etc/systemd/system/"
 	cp /usr/lib/systemd/system/docker.service /etc/systemd/system/
 else
-	echo "Unsupported Linux distributive."
+	echo "Unsupported Linux distribution."
 	exit 1
 fi
 
 echo "Done Installing Docker"
+

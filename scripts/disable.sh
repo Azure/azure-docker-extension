@@ -31,6 +31,6 @@ elif [ $distrib_id == "CoreOS" ]; then
 	echo "This is CoreOS."
 	systemctl stop docker
 else
-	echo "Unsupported Linux distributive."
+	echo "Unsupported Linux distribution."
 	exit 1
 fi

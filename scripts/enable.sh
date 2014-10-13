@@ -34,7 +34,7 @@ elif [ $distrib_id == "CoreOS" ]; then
 	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/ }
 	type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
 else
-	echo "Unsupported Linux distributive."
+	echo "Unsupported Linux distribution."
 	exit 1
 fi
 
@@ -113,7 +113,7 @@ elif [ $distrib_id == "CoreOS" ]; then
     systemctl daemon-reload
     systemctl restart docker
 else
-	echo "Unsupported Linux distributive."
+	echo "Unsupported Linux distribution."
 	exit 1
 fi
 
