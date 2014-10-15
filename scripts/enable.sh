@@ -31,7 +31,7 @@ elif [ $distrib_id == "Ubuntu" ]; then
 	echo "This is Ubuntu."
 elif [ $distrib_id == "CoreOS" ]; then
 	echo "This is CoreOS."
-	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/ }
+	type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/; }
 	type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
 else
 	echo "Unsupported Linux distribution."
