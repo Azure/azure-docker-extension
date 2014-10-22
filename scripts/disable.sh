@@ -18,7 +18,19 @@
 
 set -e
 
-service docker.io stop
+distrib_id=$(awk -F'=' '{if($1=="DISTRIB_ID")print $2; }' /etc/*-release);
 
-#update-rc.d docker.io off ?
-
+if [ $distrib_id == "" ]; then
+	echo "Error reading DISTRIB_ID"
+	exit 1
+elif [ $distrib_id == "Ubuntu" ]; then
+	echo "This is Ubuntu."
+    service docker.io stop
+    #update-rc.d docker.io off ?
+elif [ $distrib_id == "CoreOS" ]; then
+	echo "This is CoreOS."
+	systemctl stop docker
+else
+	echo "Unsupported Linux distribution."
+	exit 1
+fi
