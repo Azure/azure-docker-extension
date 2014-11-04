@@ -63,7 +63,7 @@ status=$statusdir/$statusfile
 
 cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
 
-docker_dir=/etc/docker.io
+docker_dir=/etc/docker
 
 if [ ! -d $docker_dir ]; then
     echo "Creating $docker_dir"
@@ -82,13 +82,16 @@ cat $config | \
     openssl smime  -inform DER -decrypt -recip $cert  -inkey $pkey > \
     $prot
 
-echo "Creating Certs"
-cat $prot | json_val '["ca"]' | base64 -d > $docker_dir/ca.pem
-cat $prot | json_val '["server-cert"]' | base64 -d > $docker_dir/server-cert.pem
-cat $prot | json_val '["server-key"]' | base64 -d > $docker_dir/server-key.pem
-rm $prot
-
-chmod 600 $docker_dir/*
+secure="false"
+if [ -n "$(cat $prot | json_val '["ca"]' 2>&/dev/null)" ]; then
+    echo "Creating Certs"
+    secure="true"
+    cat $prot | json_val '["ca"]' | base64 -d > $docker_dir/ca.pem
+    cat $prot | json_val '["server-cert"]' | base64 -d > $docker_dir/server-cert.pem
+    cat $prot | json_val '["server-key"]' | base64 -d > $docker_dir/server-key.pem
+    rm $prot
+    chmod 600 $docker_dir/*
+fi
 
 port=$(cat $config | json_val \
     '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["dockerport"]')
@@ -96,16 +99,27 @@ port=$(cat $config | json_val \
 echo Docker port: $port
 
 if [ $distrib_id == "Ubuntu" ]; then
-    echo "Setting up /etc/default/docker.io"
-    cat <<EOF > /etc/default/docker.io
-DOCKER="/usr/local/bin/docker"
+    echo "Setting up /etc/default/docker"
+    if [ $secure == "true" ]; then
+	cat <<EOF > /etc/default/docker
 DOCKER_OPTS="--tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port"
 EOF
+    else
+	cat <<EOF > /etc/default/docker
+DOCKER_OPTS="-H=0.0.0.0:$port"
+EOF
+    fi
+
     echo "Starting Docker"
-    update-rc.d docker.io defaults
-    service docker.io restart
+    update-rc.d docker defaults
+    service docker restart
 elif [ $distrib_id == "CoreOS" ]; then
-    sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
+    if [ $secure == "true" ]; then
+	sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
+    else
+	sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
+    fi
+
     systemctl daemon-reload
     systemctl restart docker
 else
