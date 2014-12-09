@@ -63,6 +63,20 @@ status=$statusdir/$statusfile
 
 cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
 
+if [ -n "$(cat $config | json_val \
+    '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["installonly"]' \
+    2>/dev/null )" ]; then
+    install_only=$(cat $config | json_val \
+    '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["installonly"]')
+else
+    install_only="false"
+fi
+
+if [ $install_only == "true" ]; then
+    cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
+    exit
+fi
+
 docker_dir=/etc/docker
 
 if [ ! -d $docker_dir ]; then
@@ -83,7 +97,7 @@ cat $config | \
     $prot
 
 secure="false"
-if [ -n "$(cat $prot | json_val '["ca"]' 2>&/dev/null)" ]; then
+if [ -n "$(cat $prot | json_val '["ca"]' 2>/dev/null)" ]; then
     echo "Creating Certs"
     secure="true"
     cat $prot | json_val '["ca"]' | base64 -d > $docker_dir/ca.pem
@@ -101,11 +115,11 @@ echo Docker port: $port
 if [ $distrib_id == "Ubuntu" ]; then
     echo "Setting up /etc/default/docker"
     if [ $secure == "true" ]; then
-	cat <<EOF > /etc/default/docker
+        cat <<EOF > /etc/default/docker
 DOCKER_OPTS="--tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port"
 EOF
     else
-	cat <<EOF > /etc/default/docker
+        cat <<EOF > /etc/default/docker
 DOCKER_OPTS="-H=0.0.0.0:$port"
 EOF
     fi
@@ -115,9 +129,9 @@ EOF
     service docker restart
 elif [ $distrib_id == "CoreOS" ]; then
     if [ $secure == "true" ]; then
-	sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
+        sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
     else
-	sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
+        sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
     fi
 
     systemctl daemon-reload

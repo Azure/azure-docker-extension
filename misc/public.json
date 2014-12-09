@@ -1,3 +1,4 @@
 {
-    "dockerport": "4243"
+    "dockerport": "4243",
+    "installonly": "true/false"
 }
