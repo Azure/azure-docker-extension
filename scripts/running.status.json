@@ -6,8 +6,8 @@
         "operation": "Enabling Docker",
         "status": "transitioning",
         "formattedMessage": {
-            "Lang": "en",
-            "Message": "Enabling Docker."
+            "lang": "en",
+            "message": "Enabling Docker."
         }
     }
 }]

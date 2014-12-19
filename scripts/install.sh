@@ -57,7 +57,7 @@ statusdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
     json_val '[0]["handlerEnvironment"]["statusFolder"]')
 status=$statusdir/$statusfile
 
-cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
+cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
 
 echo "Installing Docker..."
 

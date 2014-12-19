@@ -61,7 +61,7 @@ statusdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
     json_val '[0]["handlerEnvironment"]["statusFolder"]')
 status=$statusdir/$statusfile
 
-cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
+cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
 
 if [ -n "$(cat $config | json_val \
     '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["installonly"]' \
@@ -73,7 +73,7 @@ else
 fi
 
 if [ $install_only == "true" ]; then
-    cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
+    cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
     exit
 fi
 
@@ -141,4 +141,4 @@ else
     exit 1
 fi
 
-cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u -Ins)/ > $status
+cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
