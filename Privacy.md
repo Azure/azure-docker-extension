@@ -16,7 +16,7 @@ Scope
 
 * The virtual machine image onto which this VM extension gets installed comes from the publisher of that image. The publisher’s privacy practices with respect to its virtual machine image are described in the privacy disclosures provided by the publisher for such image, if any.
 
-* Microsoft’s privacy practices with respect to Microsoft Azure services are described in the Microsoft Online Services Privacy Statement.
+* Microsoft’s privacy practices with respect to Microsoft Azure services are described in the [Microsoft Online Services Privacy Statement](http://www.microsoft.com/privacystatement/en-us/OnlineServices/Default.aspx).
 
 Changes to this Privacy Statement
 ---------------------------------
