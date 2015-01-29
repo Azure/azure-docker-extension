@@ -2,7 +2,7 @@
 <ExtensionImage xmlns="http://schemas.microsoft.com/windowsazure"  xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
   <ProviderNameSpace>MSOpenTech.Extensions</ProviderNameSpace>
   <Type>DockerExtension</Type>
-  <Version>0.5.2.0</Version>
+  <Version>0.5.3.0</Version>
   <Label>Docker Extension</Label>
   <HostingResources>VmRole</HostingResources>
   <MediaLink>http://jlmpublishing.blob.core.windows.net/extensions/docker-handler5.zip</MediaLink>

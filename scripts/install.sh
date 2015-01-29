@@ -76,4 +76,8 @@ else
     exit 1
 fi
 
+echo "Add user to docker group"
+azureuser=$(grep -Eo '<UserName>.+</UserName>' /var/lib/waagent/ovf-env.xml | awk -F'[<>]' '{ print $3 }')
+sed -i -r "s/^docker:x:[0-9]+:$/&$azureuser/" /etc/group
+
 echo "Done Installing Docker"
