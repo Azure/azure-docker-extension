@@ -1,4 +1,18 @@
 {
-    "dockerport": "4243",
-    "installonly": "true/false"
+    "composeup": {
+	"web": {
+	    "image": "myweb",
+	    "links": [
+		"db"
+	    ],
+	    "ports": [
+		"8000:8000"
+	    ]
+	},
+	"db": {
+	    "image": "postgres"
+	}
+    },
+    "installonly": "true/false",
+    "dockerport": "4243"
 }

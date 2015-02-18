@@ -67,6 +67,8 @@ if [ $distrib_id == "Ubuntu" ]; then
     apt-get install -y -q linux-image-extra-$(uname -r) apt-transport-https
     echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+    sleep 3
+    apt-get update
     apt-get install -y -q lxc-docker
 elif [ $distrib_id == "CoreOS" ]; then
     echo "Copy /usr/lib/systemd/system/docker.service --> /etc/systemd/system/"

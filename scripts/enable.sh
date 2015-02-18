@@ -41,6 +41,12 @@ fi
 function json_val () {
     python -c 'import json,sys;obj=json.load(sys.stdin);print obj'$1'';
 }
+function json_dump () {
+    python -c 'import json,sys;obj=json.load(sys.stdin);print json.dumps(obj'$1')';
+}
+function yaml_dump() {
+    python -c 'import json,yaml,sys;data=json.load(sys.stdin);print yaml.safe_dump(data, default_flow_style=False)'
+}
 
 logdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
     json_val '[0]["handlerEnvironment"]["logFolder"]')
@@ -62,6 +68,30 @@ statusdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
 status=$statusdir/$statusfile
 
 cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
+
+azureuser=$(grep -Eo '<UserName>.+</UserName>' /var/lib/waagent/ovf-env.xml | awk -F'[<>]' '{ print $3 }')
+
+if [ -n "$(cat $config | json_dump '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["composeup"]' 2>/dev/null )" ]; then
+    compose_up=$(cat $config | json_dump '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["composeup"]')
+else
+    compose_up="false"
+fi
+
+curl -L https://github.com/docker/fig/releases/download/1.1.0-rc2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+if [ "$compose_up" != "false" ]; then
+    echo "composing:"
+    echo $compose_up | yaml_dump
+    mkdir -p /home/$azureuser/compose
+    pushd /home/$azureuser/compose
+    echo $compose_up | yaml_dump > ./docker-compose.yml
+    docker-compose up -d
+    popd
+else
+    echo "No compose args, not starting anything"
+fi
+
 
 if [ -n "$(cat $config | json_val \
     '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["installonly"]' \
@@ -96,16 +126,12 @@ cat $config | \
     openssl smime  -inform DER -decrypt -recip $cert  -inkey $pkey > \
     $prot
 
-secure="false"
-if [ -n "$(cat $prot | json_val '["ca"]' 2>/dev/null)" ]; then
-    echo "Creating Certs"
-    secure="true"
-    cat $prot | json_val '["ca"]' | base64 -d > $docker_dir/ca.pem
-    cat $prot | json_val '["server-cert"]' | base64 -d > $docker_dir/server-cert.pem
-    cat $prot | json_val '["server-key"]' | base64 -d > $docker_dir/server-key.pem
-    rm $prot
-    chmod 600 $docker_dir/*
-fi
+echo "Creating Certs"
+cat $prot | json_val '["ca"]' | base64 -d > $docker_dir/ca.pem
+cat $prot | json_val '["server-cert"]' | base64 -d > $docker_dir/server-cert.pem
+cat $prot | json_val '["server-key"]' | base64 -d > $docker_dir/server-key.pem
+rm $prot
+chmod 600 $docker_dir/*
 
 port=$(cat $config | json_val \
     '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["dockerport"]')
@@ -114,25 +140,15 @@ echo Docker port: $port
 
 if [ $distrib_id == "Ubuntu" ]; then
     echo "Setting up /etc/default/docker"
-    if [ $secure == "true" ]; then
-        cat <<EOF > /etc/default/docker
+    cat <<EOF > /etc/default/docker
 DOCKER_OPTS="--tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port"
 EOF
-    else
-        cat <<EOF > /etc/default/docker
-DOCKER_OPTS="-H=0.0.0.0:$port"
-EOF
-    fi
 
     echo "Starting Docker"
     update-rc.d docker defaults
     service docker restart
 elif [ $distrib_id == "CoreOS" ]; then
-    if [ $secure == "true" ]; then
-        sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
-    else
-        sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
-    fi
+    sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
 
     systemctl daemon-reload
     systemctl restart docker
