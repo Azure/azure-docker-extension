@@ -25,7 +25,7 @@ if [ $distrib_id == "" ]; then
 	exit 1
 elif [ $distrib_id == "Ubuntu" ]; then
 	echo "This is Ubuntu."
-    service docker.io stop
+    service docker stop
     #update-rc.d docker.io off ?
 elif [ $distrib_id == "CoreOS" ]; then
 	echo "This is CoreOS."
