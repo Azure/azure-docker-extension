@@ -18,75 +18,42 @@
 
 set -eu
 set -o pipefail
+source ./dockerlib.sh
+
+validate_distro
+
 IFS=$'\n\t'
 
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
-
-distrib_id=$(awk -F'=' '{if($1=="DISTRIB_ID")print $2; }' /etc/*-release);
-
-if [ $distrib_id == "" ]; then
-    echo "Error reading DISTRIB_ID"
-    exit 1
-elif [ $distrib_id == "Ubuntu" ]; then
-    echo "This is Ubuntu."
-elif [ $distrib_id == "CoreOS" ]; then
-    echo "This is CoreOS."
-    type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/; }
-    type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
-else
-    echo "Unsupported Linux distribution."
-    exit 1
-fi
-
-function json_val () {
-    python -c 'import json,sys;obj=json.load(sys.stdin);print obj'$1'';
-}
-
-logdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
-    json_val '[0]["handlerEnvironment"]["logFolder"]')
-logfile=$logdir/docker-handler.log
-
-exec >> $logfile 2>&1
-
-configdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
-    json_val '[0]["handlerEnvironment"]["configFolder"]')
-configfile=$(ls $configdir | grep -E ^[0-9]+.settings$ | sort -n | tail -n 1)
-
-statusfile=$(echo $configfile | sed s/settings/status/)
-statusdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
-    json_val '[0]["handlerEnvironment"]["statusFolder"]')
-status=$statusdir/$statusfile
+exec >> $LOG_FILE 2>&1
+status=$STATUS_DIR/$STATUS_FILE
 
 cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
 
-echo "Installing Docker..."
+log "Installing Docker..."
 
-if [ $distrib_id == "Ubuntu" ]; then
+if [ $DISTRO == "Ubuntu" ]; then
     wget -qO- https://get.docker.com/ | sh
-elif [ $distrib_id == "CoreOS" ]; then
-    echo "Copy /usr/lib/systemd/system/docker.service --> /etc/systemd/system/"
+elif [ $DISTRO == "CoreOS" ]; then
+    log "Copy /usr/lib/systemd/system/docker.service --> /etc/systemd/system/"
     cp /usr/lib/systemd/system/docker.service /etc/systemd/system/
-else
-    echo "Unsupported Linux distribution."
-    exit 1
 fi
 
-echo "Add user to docker group"
+log "Add user to docker group"
 azureuser=$(grep -Eo '<UserName>.+</UserName>' /var/lib/waagent/ovf-env.xml | awk -F'[<>]' '{ print $3 }')
 sed -i -r "s/^docker:x:[0-9]+:$/&$azureuser/" /etc/group
 
-echo "Done Installing Docker"
+log "Done installing Docker"
 
-echo "Installing Docker Compose..."
+log "Installing Docker Compose..."
 
-if [ $distrib_id == "CoreOS" ]; then
-    compose_dir=/opt/bin
+if [ $DISTRO == "CoreOS" ]; then
+    COMPOSE_DIR=/opt/bin
     mkdir -p $compose_dir
 else
-    compose_dir=/usr/local/bin
+    COMPOSE_DIR=/usr/local/bin
 fi
 
-curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > $compose_dir/docker-compose
-chmod +x $compose_dir/docker-compose
+curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > $COMPOSE_DIR/docker-compose
+chmod +x $COMPOSE_DIR/docker-compose
 
-echo "Done installing Docker Compose"
+log "Done installing Docker Compose"

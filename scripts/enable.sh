@@ -18,54 +18,20 @@
 
 set -eu
 set -o pipefail
+source ./dockerlib.sh
+
+validate_distro
+
 IFS=$'\n\t'
 
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+exec >> $LOG_FILE 2>&1
 
-distrib_id=$(awk -F'=' '{if($1=="DISTRIB_ID")print $2; }' /etc/*-release);
+log "Enabling Docker"
 
-if [ $distrib_id == "" ]; then
-    echo "Error reading DISTRIB_ID"
-    exit 1
-elif [ $distrib_id == "Ubuntu" ]; then
-    echo "This is Ubuntu."
-elif [ $distrib_id == "CoreOS" ]; then
-    echo "This is CoreOS."
-    type python >/dev/null 2>&1 || { export PATH=$PATH:/usr/share/oem/python/bin/; }
-    type python >/dev/null 2>&1 || { echo >&2 "Python is required but it's not installed."; exit 1; }
-else
-    echo "Unsupported Linux distribution."
-    exit 1
-fi
+config=$CONFIG_DIR/$CONFIG_FILE
+log "Using config: $config"
 
-function json_val () {
-    python -c 'import json,sys;obj=json.load(sys.stdin);print obj'$1'';
-}
-function json_dump () {
-    python -c 'import json,sys;obj=json.load(sys.stdin);print json.dumps(obj'$1')';
-}
-function yaml_dump() {
-    python -c 'import json,yaml,sys;data=json.load(sys.stdin);print yaml.safe_dump(data, default_flow_style=False)'
-}
-
-logdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
-    json_val '[0]["handlerEnvironment"]["logFolder"]')
-logfile=$logdir/docker-handler.log
-
-exec >> $logfile 2>&1
-
-echo "Enabling Docker"
-
-configdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
-    json_val '[0]["handlerEnvironment"]["configFolder"]')
-configfile=$(ls $configdir | grep -E ^[0-9]+.settings$ | sort -n | tail -n 1)
-config=$configdir/$configfile
-echo Using config: $config
-
-statusfile=$(echo $configfile | sed s/settings/status/)
-statusdir=$(cat $SCRIPT_DIR/../HandlerEnvironment.json | \
-    json_val '[0]["handlerEnvironment"]["statusFolder"]')
-status=$statusdir/$statusfile
+status=$STATUS_DIR/$STATUS_FILE
 
 cat $SCRIPT_DIR/running.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
 
@@ -78,15 +44,15 @@ else
 fi
 
 if [ "$compose_up" != "false" ]; then
-    echo "composing:"
+    log "composing:"
     echo $compose_up | yaml_dump
-    mkdir -p /home/$azureuser/compose
-    pushd /home/$azureuser/compose
+    mkdir -p "/home/$azureuser/compose"
+    pushd "/home/$azureuser/compose"
     echo $compose_up | yaml_dump > ./docker-compose.yml
     docker-compose up -d
     popd
 else
-    echo "No compose args, not starting anything"
+    log "No compose args, not starting anything"
 fi
 
 if [ -n "$(cat $config | json_val \
@@ -106,7 +72,7 @@ fi
 docker_dir=/etc/docker
 
 if [ ! -d $docker_dir ]; then
-    echo "Creating $docker_dir"
+    log "Creating $docker_dir"
     mkdir $docker_dir
 fi
 
@@ -122,7 +88,7 @@ cat $config | \
     openssl smime  -inform DER -decrypt -recip $cert  -inkey $pkey > \
     $prot
 
-echo "Creating Certs"
+log "Creating Certs"
 cat $prot | json_val '["ca"]' | base64 -d > $docker_dir/ca.pem
 cat $prot | json_val '["server-cert"]' | base64 -d > $docker_dir/server-cert.pem
 cat $prot | json_val '["server-key"]' | base64 -d > $docker_dir/server-key.pem
@@ -132,25 +98,22 @@ chmod 600 $docker_dir/*
 port=$(cat $config | json_val \
     '["runtimeSettings"][0]["handlerSettings"]["publicSettings"]["dockerport"]')
 
-echo Docker port: $port
+log "Docker port: $port"
 
-if [ $distrib_id == "Ubuntu" ]; then
-    echo "Setting up /etc/default/docker"
+if [ $DISTRO == "Ubuntu" ]; then
+    log "Setting up /etc/default/docker"
     cat <<EOF > /etc/default/docker
 DOCKER_OPTS="--tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port"
 EOF
 
-    echo "Starting Docker"
+    log "Starting Docker"
     update-rc.d docker defaults
     service docker restart
-elif [ $distrib_id == "CoreOS" ]; then
+elif [ $DISTRO == "CoreOS" ]; then
     sed -i "s%ExecStart=.*%ExecStart=/usr/bin/docker --daemon --tlsverify --tlscacert=$docker_dir/ca.pem --tlscert=$docker_dir/server-cert.pem --tlskey=$docker_dir/server-key.pem -H=0.0.0.0:$port%" /etc/systemd/system/docker.service
 
     systemctl daemon-reload
     systemctl restart docker
-else
-    echo "Unsupported Linux distribution."
-    exit 1
 fi
 
 cat $SCRIPT_DIR/success.status.json | sed s/@@DATE@@/$(date -u +%FT%TZ)/ > $status
