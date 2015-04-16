@@ -76,3 +76,17 @@ azureuser=$(grep -Eo '<UserName>.+</UserName>' /var/lib/waagent/ovf-env.xml | aw
 sed -i -r "s/^docker:x:[0-9]+:$/&$azureuser/" /etc/group
 
 echo "Done Installing Docker"
+
+echo "Installing Docker Compose..."
+
+if [ $distrib_id == "CoreOS" ]; then
+    compose_dir=/opt/bin
+    mkdir -p $compose_dir
+else
+    compose_dir=/usr/local/bin
+fi
+
+curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > $compose_dir/docker-compose
+chmod +x $compose_dir/docker-compose
+
+echo "Done installing Docker Compose"
