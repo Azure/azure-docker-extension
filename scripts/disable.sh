@@ -17,20 +17,14 @@
 #--------------------------------------------------------------------------
 
 set -e
+source ./dockerlib.sh
+exec >> $LOG_FILE 2>&1
 
-distrib_id=$(awk -F'=' '{if($1=="DISTRIB_ID")print $2; }' /etc/*-release);
+validate_distro
 
-if [ $distrib_id == "" ]; then
-	echo "Error reading DISTRIB_ID"
-	exit 1
-elif [ $distrib_id == "Ubuntu" ]; then
-	echo "This is Ubuntu."
+log "Stopping docker service"
+if [[ $DISTRO == "Ubuntu" ]]; then
     service docker stop
-    #update-rc.d docker.io off ?
-elif [ $distrib_id == "CoreOS" ]; then
-	echo "This is CoreOS."
-	systemctl stop docker
-else
-	echo "Unsupported Linux distribution."
-	exit 1
+elif [[ $DISTRO == "CoreOS" ]]; then
+    systemctl stop docker
 fi
