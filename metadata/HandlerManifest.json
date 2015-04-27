@@ -1,6 +1,6 @@
 [{
-  "name": "DockerHandler",
-  "version": 0.7,
+  "name": "DockerExtension",
+  "version": 1.0,
   "handlerManifest": {
     "installCommand": "bin/docker-extension install",
     "uninstallCommand": "bin/docker-extension uninstall",
@@ -8,6 +8,7 @@
     "enableCommand": "bin/docker-extension enable",
     "disableCommand": "bin/docker-extension disable",
     "rebootAfterInstall": false,
-    "reportHeartbeat": false
+    "reportHeartbeat": false,
+    "updateMode": "UpdateWithoutInstall"
   }
 }]

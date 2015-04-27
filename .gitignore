@@ -1,1 +1,7 @@
-*~
+*.swp
+pkg
+bin
+bundle
+
+# Ignore external dependencies (go get ./...)
+src/gopkg.in/
