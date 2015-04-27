@@ -1,0 +1,13 @@
+{
+  "runtimeSettings": [
+    {
+      "handlerSettings": {
+        "publicSettings": {
+          "dockerport": "4243"
+        },
+        "protectedSettings": "",
+        "protectedSettingsCertThumbprint": "B3364F39E3086E9AD0C67767348D7392D35BC176"
+      }
+    }
+  ]
+}
