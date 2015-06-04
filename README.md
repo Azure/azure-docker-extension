@@ -3,14 +3,12 @@
 This repository contains source code for the Microsoft Azure Docker Virtual
 Machine Extension.
 
-This repository is meant to be used by Microsoft Azure employees publishing the
+The source code is meant to be used by Microsoft Azure employees publishing the
 extension and the source code is open sourced under Apache 2.0 License for
-reference.
+reference. You can read the User Guide below.
 
 * [Learn more: Azure Virtual Machine Extensions](https://msdn.microsoft.com/en-us/library/azure/dn606311.aspx)
 * [How to use: Docker VM Extension](http://azure.microsoft.com/en-us/documentation/articles/virtual-machines-docker-vm-extension/)
-
-## More info about Docker VM Extension
 
 Docker VM extension can:
 
@@ -101,8 +99,8 @@ Using [**Azure CLI**][azure-cli]: Once you have a VM created on Azure and
 configured your `pub.json` and `prot.json` (in section 1.1 and 1.2 above), you
 can add the Docker Extension to the virtual machine by running:
 
-    $ azure vm extension set yourVMname DockerExtension Microsoft.Azure.Extensions '1.0' 
-    --public-config-path pub.json 
+    $ azure vm extension set 'yourVMname' DockerExtension Microsoft.Azure.Extensions '1.0' \
+    --public-config-path pub.json  \
     --private-config-path prot.json
 
 In the command above, you can change version (1.0) with `'*'` to use latest
