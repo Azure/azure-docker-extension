@@ -1,0 +1,24 @@
+Bag Attributes
+    localKeyID: 01 00 00 00 
+    friendlyName: dockerextensioncoreos
+subject=/DC=Windows Azure Service Management for Extensions
+issuer=/DC=Windows Azure Service Management for Extensions
+-----BEGIN CERTIFICATE-----
+MIIDCjCCAfKgAwIBAgIQJAjSoLTBHbNMzpc1G+xmhDANBgkqhkiG9w0BAQUFADBB
+MT8wPQYKCZImiZPyLGQBGRYvV2luZG93cyBBenVyZSBTZXJ2aWNlIE1hbmFnZW1l
+bnQgZm9yIEV4dGVuc2lvbnMwHhcNMTUwNDIzMTc0MjUxWhcNMjAwNDIzMTc0MjUx
+WjBBMT8wPQYKCZImiZPyLGQBGRYvV2luZG93cyBBenVyZSBTZXJ2aWNlIE1hbmFn
+ZW1lbnQgZm9yIEV4dGVuc2lvbnMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQDIvy9+qVVLGHjWGi/UQQI9U716H8zjg8e0k2cvZEzqKqjLBTA213atcUlj
+01ibP5T8kehX8yW9lj54Yb4u1sVOn5lG58QPH9/+NmlFkaRJuVgzOwOdi7hfw7y7
+WFQ2ntZ5l2Ysx9fvB0tVp/JLcC1/N25KS/qQ5hvK6DnS/2pLDM8s+klblbew18D7
+jx5nb4yvwVo+A98Yl0QToTyrf3/NxWhs3rl77RTPPxmUN8CXt0owq+AvbzHXRt+O
+w/3/l40nd4SgvV6xdL4xIoQQ3wUvilqsm0WxZmPvACfjTkaMG7BjmzlzY5W/OTx6
+UKF0aE9zHabjyvdYH3xWpIkYMCV7AgMBAAEwDQYJKoZIhvcNAQEFBQADggEBAKYD
+/Cfc4ZI4HKOh7CFX3h27fcoIAXU0D5u7aXHHL/FuosIEdxwbNMhlulYyMKuOgele
+rqkW1hQPkF+CSzVM2DDSAJOdMIGeFT5xBF05T+t+HDSTQnDGlu9Uo6stp8d+PQCd
+oizjxWaQGPOf+ptDAt18nxbthakOgQdYs6Ey4dfd/JIuy5nVIpjXzNuGkU6PUmC1
+td3dRNBit/aes6FEoW+fQKWLWgXv/b4ggloEuxLnmihq6zhG5z4aPCe6Y5Qxbwkj
+hpUN7MKIErYnt4xe9Mf/iT84dKq9+xriQzuCdiIhPjdlUrZ46X2GDfCQXZaMcHv7
+Qi3JgUhZ6TruxJCDV1A=
+-----END CERTIFICATE-----

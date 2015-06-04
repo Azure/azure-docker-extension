@@ -1,5 +1,0 @@
-{
-    "ca": "b64 cert",
-    "server-cert": "b64 cert",
-    "server-key": "b64 cert"
-}

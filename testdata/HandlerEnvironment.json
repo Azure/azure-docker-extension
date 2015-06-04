@@ -1,0 +1,13 @@
+[
+  {
+    "handlerEnvironment": {
+      "heartbeatFile": "/var/lib/waagent/Extension/heartbeat.log",
+      "statusFolder": "/var/lib/waagent/Extension/status",
+      "configFolder": "/var/lib/waagent/Extension/config",
+      "logFolder": "/var/log/azure/Extension/0.6.0.0"
+    },
+    "version": 1,
+    "seqNo": "0",
+    "name": "MSOpenTech.Extensions.DockerExtension"
+  }
+]
