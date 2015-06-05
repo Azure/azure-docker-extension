@@ -69,3 +69,13 @@ Run `make slice4` and watch result using `make listversions`.
 
 Once completed, run `azure vm extension list --json` command from a subscription that is not a publisher
 subscription to verify if the new version is available.
+
+### 4. Take a code snapshow
+
+Once the version is successful and works in Production, document the changes in README.md
+“Changelog” section, commit the changes and create a tag with the version number you published e.g.:
+
+    git tag 1.0.1506041803
+    git push --tags
+
+This will create a snapshot of the code in “releases” section of the GitHub repository.
