@@ -127,8 +127,8 @@ is expected to fail on unsupported distributions.
 
 After adding the extension, it can usually take a few minutes for the extension
 to make it to the VM, install docker and do other things. You can see the
-operation log of the extension at the `/var/log/azure/<<extension>>/docker-
-extension.log` file.
+operation log of the extension at the
+`/var/log/azure/<<extension version>>/docker-extension.log` file.
 
 ### Changelog
 
