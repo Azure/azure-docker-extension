@@ -13,7 +13,7 @@ type StatusReport []StatusItem
 type StatusItem struct {
 	Version      float64 `json:"version"`
 	TimestampUTC string  `json:"timestampUTC"`
-	Status       Status  `json:"Status"`
+	Status       Status  `json:"status"`
 }
 
 type Type string
