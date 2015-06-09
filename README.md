@@ -133,6 +133,9 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1506090235
+- Bug fix
+
 # 1.0.1506041832 (2015-06-04)
 - Initial release
 ```
