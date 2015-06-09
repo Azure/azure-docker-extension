@@ -41,7 +41,7 @@ before going through these commands.
 blob storage, will publish the extension.
 
 Once you see "HTTP 202 Accepted" in the response, run `make listversions` to see if your version became
-`<ReplicationStatus>true</ReplicationStatus>` and wait until it does so. (You can check the replication
+`<Status>Completed</Status>` on all regions and wait until it does so. (You can check the replication
 status via `make replicationstatus`). Based on the load on PIR it may take between 5 minutes to 10 hours
 (based on personal experience).
 
