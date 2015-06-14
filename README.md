@@ -133,7 +133,10 @@ operation log of the extension at the
 ### Changelog
 
 ```
-# 1.0.1506090235
+# 1.0.1506141804 (2015-06-14)
+- Privacy Policy link update
+
+# 1.0.1506090235 (2015-06-09)
 - Bug fix
 
 # 1.0.1506041832 (2015-06-04)
