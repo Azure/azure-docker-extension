@@ -55,8 +55,9 @@ advanced one like this:
 }
 ```
 
-One thing to note is, do not specify `"port"` unless you are going to
-specify `"certs"` configuration (described below).
+> **NOTE:** It is not suggested to specify `"port"` unless you are going to
+specify `"certs"` configuration (described below) as well. This can open up
+the Docker engine to public internet without authentication.
 
 ### 1.2. Protected configuration keys
 
