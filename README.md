@@ -27,16 +27,15 @@ Schema for the public configuration file for the Docker Extension looks like
 this:
 
 * `docker`: (optional, JSON object)
-  * `port`: (optional, strign) the port Docker listens on
+  * `port`: (optional, string) the port Docker listens on
   * `options`: (optional, string array) command line options passed to the
     Docker engine
 * `compose`: (optional, JSON object) the compose.yml file to be used, [converted
   to JSON][yaml-to-json].
 
-A minimal simple configuration would be an empty json array: `{}` or a more
-advanced one:
+A minimal simple configuration would be an empty json object (`{}`) or a more
+advanced one like this:
   
-
 ```json
 {
 	"docker":{
@@ -55,6 +54,9 @@ advanced one:
 	}
 }
 ```
+
+One thing to note is, do not specify `"port"` unless you are going to
+specify `"certs"` configuration (described below).
 
 ### 1.2. Protected configuration keys
 
