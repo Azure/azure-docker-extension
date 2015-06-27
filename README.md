@@ -133,6 +133,15 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1506272348 (2015-06-27)
+- "certs" that are not base64-encoded are also accepted now. This provides more
+  backwards compatibility with the existing format in the old extension.
+- Docker certs are now overwritten on every 'enable' run using the extension
+  configuration.
+- Placed certs server-cert.pem/server-key.pem are renamed to cert.pem/key.pem to
+  be consistent with Docker's nomenclature. The change should be automatically
+  picked up upon reboot.
+
 # 1.0.1506141804 (2015-06-14)
 - Privacy Policy link update
 

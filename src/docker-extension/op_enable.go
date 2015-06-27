@@ -18,6 +18,11 @@ import (
 
 const (
 	composeYml = "docker-compose.yml"
+
+	dockerCfgDir  = "/etc/docker"
+	dockerCaCert  = "ca.pem"
+	dockerSrvCert = "cert.pem"
+	dockerSrvKey  = "key.pem"
 )
 
 func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
@@ -120,20 +125,10 @@ func installDockerCerts(s DockerHandlerSettings, dstDir string) error {
 		{s.Certs.ServerKeyBase64, filepath.Join(dstDir, dockerSrvKey)},
 	}
 
-	// Check if certs pre rovided
+	// Check if certs are provided
 	for _, v := range m {
 		if len(v.src) == 0 {
 			log.Printf("Docker certificate %s is not provided in the extension settings, skipping docker certs installation", v.dst)
-			return nil
-		}
-	}
-
-	// Check if certificate files already exist
-	for _, v := range m {
-		if ok, err := util.PathExists(v.dst); err != nil {
-			return fmt.Errorf("error examining path %s: %v", v.dst, err)
-		} else if ok {
-			log.Printf("%s already exists, skipping installing certificates", v.dst)
 			return nil
 		}
 	}
@@ -150,9 +145,11 @@ func installDockerCerts(s DockerHandlerSettings, dstDir string) error {
 	// Write the certs
 	for _, v := range m {
 		// Decode base64
-		f, err := base64.StdEncoding.DecodeString(strings.TrimSpace(v.src))
+		in := strings.TrimSpace(v.src)
+		f, err := base64.StdEncoding.DecodeString(in)
 		if err != nil {
-			return fmt.Errorf("error decoding base64 cert contents: %v", err)
+			// Fallback to original file input
+			f = []byte(in)
 		}
 
 		if err := ioutil.WriteFile(v.dst, f, 0600); err != nil {

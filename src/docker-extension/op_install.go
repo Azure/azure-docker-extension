@@ -17,11 +17,6 @@ import (
 const (
 	composeUrl = "https://github.com/docker/compose/releases/download/1.2.0/docker-compose-Linux-x86_64"
 	composeBin = "docker-compose"
-
-	dockerCfgDir  = "/etc/docker"
-	dockerCaCert  = "ca.pem"
-	dockerSrvCert = "server-cert.pem"
-	dockerSrvKey  = "server-key.pem"
 )
 
 func install(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
