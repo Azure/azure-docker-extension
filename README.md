@@ -133,7 +133,7 @@ operation log of the extension at the
 ### Changelog
 
 ```
-# 1.0.1506272348 (2015-06-27)
+# 1.0.1506280321 (2015-06-27)
 - "certs" that are not base64-encoded are also accepted now. This provides more
   backwards compatibility with the existing format in the old extension.
 - Docker certs are now overwritten on every 'enable' run using the extension

@@ -3,6 +3,9 @@ BINDIR=bin
 BUNDLE=docker-extension.zip
 BUNDLEDIR=bundle
 
+EXT_NS=Microsoft.Azure.Extensions
+EXT_NAME=DockerExtension
+
 # Storage account used for publishing the VM extension
 STGACCT=dockerextension
 SUBS_ID=c3dfd792-49a4-4b06-80fc-6fc6d06c4742
@@ -116,7 +119,7 @@ deleteversion:
 	@read -p "Version to delete (e.g. 1.0.1505311204): " VERSION && \
 		read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
 		curl -iE "$${CERT_PATH}" -X DELETE \
-		https://management.core.windows.net/$(SUBS_ID)/services/extensions/Microsoft.Azure.Extensions/DockerExtension/$${VERSION} \
+		https://management.core.windows.net/$(SUBS_ID)/services/extensions/$(EXT_NS)/$(EXT_NAME)/$${VERSION} \
 		-H "x-ms-version: 2015-04-01"
 listversions:
 	@read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
@@ -127,7 +130,7 @@ replicationstatus:
 	@read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
 	read -p "Version (e.g. 1.0.1505311204): " VERSION && \
 		curl -sSL -E "$${CERT_PATH}" -H "x-ms-version: 2015-04-01" \
-		https://management.core.windows.net/$(SUBS_ID)/services/extensions/Microsoft.Azure.Extensions/DockerExtension/$${VERSION}/replicationstatus | \
+		https://management.core.windows.net/$(SUBS_ID)/services/extensions/$(EXT_NS)/$(EXT_NAME)/$${VERSION}/replicationstatus | \
 			sed 's/<ReplicationStatus>/\n<ReplicationStatus>/g' | \
 			grep --color '<Status>[A-Za-z]\+</Status>'
-.PHONY: clean bundle binary publish test deleteversion listversions replicationstatus stage1
+.PHONY: clean bundle binary publish test deleteversion listversions replicationstatus slice2 slice3 slice4
