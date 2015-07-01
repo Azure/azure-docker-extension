@@ -17,7 +17,9 @@ import (
 )
 
 const (
-	composeYml = "docker-compose.yml"
+	composeDir     = "/etc/docker/compose"
+	composeYml     = "docker-compose.yml"
+	composeProject = "compose" // prefix for compose-created containers
 
 	dockerCfgDir  = "/etc/docker"
 	dockerCaCert  = "ca.pem"
@@ -98,18 +100,17 @@ func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
 		return fmt.Errorf("error converting to compose.yml: %v", err)
 	}
 
-	tmpDir, err := ioutil.TempDir(os.TempDir(), "compose")
-	if err != nil {
-		return fmt.Errorf("failed creating temp dir: %v", err)
+	if err := os.MkdirAll(composeDir, 0777); err != nil {
+		return fmt.Errorf("failed creating %s: %v", composeDir, err)
 	}
-	log.Printf("Using compose yaml:---------\n%s\n----------", string(yaml))
-	ymlPath := filepath.Join(tmpDir, composeYml)
+	log.Printf("Using compose yaml:>>>>>\n%s\n<<<<<", string(yaml))
+	ymlPath := filepath.Join(composeDir, composeYml)
 	if err := ioutil.WriteFile(ymlPath, yaml, 0666); err != nil {
-		return fmt.Errorf("error writing yaml: %v", err)
+		return fmt.Errorf("error writing %s: %v", ymlPath, err)
 	}
 
 	compose := filepath.Join(d.DockerComposeDir(), composeBin)
-	return executil.ExecPipe(compose, "-f", ymlPath, "up", "-d")
+	return executil.ExecPipe(compose, "-p", composeProject, "-f", ymlPath, "up", "-d")
 }
 
 // installDockerCerts saves the configured certs to the specified dir
