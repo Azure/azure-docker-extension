@@ -136,6 +136,11 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1507020203 (2015-07-01)
+- Better docker-compose integration and prevent duplicate container creations
+  between reboots.
+- Fork and run in background install/enable steps to avoid waagent time limits.
+
 # 1.0.1506280321 (2015-06-27)
 - "certs" that are not base64-encoded are also accepted now. This provides more
   backwards compatibility with the existing format in the old extension.
