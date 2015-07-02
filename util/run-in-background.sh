@@ -10,4 +10,4 @@ set -eu
 # and yet still reports its progress through '.status' files to
 # the extension system.
 
-nohup ./bin/docker-extension $@
+nohup ./bin/docker-extension $@ &
