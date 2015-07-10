@@ -2,7 +2,7 @@
   "name": "DockerExtension",
   "version": 1.0,
   "handlerManifest": {
-    "installCommand":   "util/run-in-background.sh install",
+    "installCommand":   "bin/docker-extension install",
     "enableCommand":    "util/run-in-background.sh enable",
     "uninstallCommand": "bin/docker-extension uninstall",
     "updateCommand":    "bin/docker-extension update",

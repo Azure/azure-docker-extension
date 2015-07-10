@@ -136,6 +136,10 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1507101636 (2015-07-10)
+- Bug fix (gh#38). Blocking on install step instead of forking and running in
+  background.
+
 # 1.0.1507020203 (2015-07-01)
 - Better docker-compose integration and prevent duplicate container creations
   between reboots.
