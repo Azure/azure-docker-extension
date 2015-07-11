@@ -110,7 +110,7 @@ func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
 	}
 
 	compose := filepath.Join(d.DockerComposeDir(), composeBin)
-	return executil.ExecPipe(compose, "-p", composeProject, "-f", ymlPath, "up", "-d")
+	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, compose, "-p", composeProject, "-f", ymlPath, "up", "-d")
 }
 
 // installDockerCerts saves the configured certs to the specified dir

@@ -136,6 +136,10 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1507110733 (2015-07-11)
+- Workaround for a bug caused from docker-compose to crash with error
+  'write /dev/stderr: broken pipe'
+
 # 1.0.1507101636 (2015-07-10)
 - Bug fix (gh#38). Blocking on install step instead of forking and running in
   background.
