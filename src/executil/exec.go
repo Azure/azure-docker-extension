@@ -23,16 +23,33 @@ func SetOut(o io.Writer) {
 	log = lg.New(out, "[executil] ", lg.LstdFlags)
 }
 
+type Fds struct{ Out, Err io.Writer }
+
 // ExecPipe is a convenience method to run programs with
 // arguments and return their combined stdout/stderr
 // output while printing them both to calling process'
 // stdout.
 func ExecPipe(program string, args ...string) error {
+	return ExecPipeToFds(Fds{out, out}, program, args...)
+}
+
+// ExecPipeToFds runs the program with specified args and given
+// out/err descriptiors. Non-specified (nil) descriptors will be
+// replaced with default out stream.
+func ExecPipeToFds(fds Fds, program string, args ...string) error {
 	log.Printf("+++ invoke: %s %v", program, args)
 	defer log.Printf("--- invoke end")
 	cmd := osexec.Command(program, args...)
 
-	cmd.Stdout, cmd.Stderr = out, out
+	// replace nil streams with default
+	if fds.Out == nil {
+		fds.Out = out
+	}
+	if fds.Err == nil {
+		fds.Err = out
+	}
+
+	cmd.Stdout, cmd.Stderr = fds.Out, fds.Err
 	err := cmd.Run()
 	if err != nil {
 		err = fmt.Errorf("executing %s %v failed: %v", program, args, err)
