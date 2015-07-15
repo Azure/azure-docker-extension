@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ExtensionImage xmlns="http://schemas.microsoft.com/windowsazure"  xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- WARNING: Ordering of fields matter in this file. -->
+  <ProviderNameSpace>Microsoft.Azure.Extensions</ProviderNameSpace>
+  <Type>DockerExtension</Type>
+  <Version>{{VERSION}}</Version>
+  <IsInternalExtension>true</IsInternalExtension>
+  <IsJsonExtension>true</IsJsonExtension>
+</ExtensionImage>

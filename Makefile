@@ -114,14 +114,7 @@ slice4:
 			-X PUT \
 			-H "x-ms-version: 2015-04-01" \
 			-H "Content-Type:application/xml" && \
-	echo "\nOK: version rolling out to Slice #4 (ALL REGIONS in Prod) if the response above was 202 Accepted."; \
-
-deleteversion:
-	@read -p "Version to delete (e.g. 1.0.1505311204): " VERSION && \
-		read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
-		curl -iE "$${CERT_PATH}" -X DELETE \
-		https://management.core.windows.net/$(SUBS_ID)/services/extensions/$(EXT_NS)/$(EXT_NAME)/$${VERSION} \
-		-H "x-ms-version: 2015-04-01"
+	echo "\nOK: version rolling out to Slice #4 (ALL REGIONS in Prod) if the response above was 202 Accepted.";
 listversions:
 	@read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
 		curl -sSL -E "$${CERT_PATH}" -H "x-ms-version: 2015-04-01" \
@@ -134,4 +127,30 @@ replicationstatus:
 		https://management.core.windows.net/$(SUBS_ID)/services/extensions/$(EXT_NS)/$(EXT_NAME)/$${VERSION}/replicationstatus | \
 			sed 's/<ReplicationStatus>/\n<ReplicationStatus>/g' | \
 			grep --color '<Status>[A-Za-z]\+</Status>'
-.PHONY: clean bundle binary publish test deleteversion listversions replicationstatus slice2 slice3 slice4
+unregisterversion:
+	@read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
+	read -p "Version (e.g. 1.0.1505311204): " VERSION && \
+	UPDATE_FILE="./metadata/UnregisterRequest.xml" && \
+	if [ ! -f "$${UPDATE_FILE}" ]; then echo "Update template $${UPDATE_FILE} does not exist.";  exit; fi && \
+	xml=$$(cat "$${UPDATE_FILE}") && \
+	newxml=$$(echo "$${xml}" | \
+		sed "s,{{VERSION}},$${VERSION},g") && \
+		echo "Updating the extension to internal first:\n-----\n$${newxml}\n-----" && \
+	echo "$${newxml}" | \
+		curl -i -E "$${CERT_PATH}" https://management.core.windows.net/$(SUBS_ID)/services/extensions?action=update \
+			-d @- \
+			-X PUT \
+			-H "x-ms-version: 2015-04-01" \
+			-H "Content-Type:application/xml" && \
+	echo "\n\nUpdate to internal=OK: If the request above was successful. Give it some time to replicate the manifest and use 'make deleteversion'."
+deleteversion:
+	@read -p "Path to Subscription Management Cert (subs:$(SUBS_ID)): " CERT_PATH && \
+		read -p "Version (e.g. 1.0.1505311204): " VERSION && \
+	echo "Unregistering (deleting) the extension version $${VERSION}." && \
+		curl -iE "$${CERT_PATH}" \
+			-X DELETE \
+			-H "x-ms-version: 2015-04-01" \
+		https://management.core.windows.net/$(SUBS_ID)/services/extensions/$(EXT_NS)/$(EXT_NAME)/$${VERSION} && \
+		echo "\n\nUnregistering (deleting) version successful if request above was 202 Accepted. Watch for that operation ID to verify."
+
+.PHONY: clean bundle binary publish test unregisterversion deleteversion listversions replicationstatus slice2 slice3 slice4
