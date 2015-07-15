@@ -136,6 +136,9 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1507151643 (2015-07-15)
+- Bump docker-compose to v1.3.2 from v1.2.0. (gh#41)
+
 # 1.0.1507110733 (2015-07-11)
 - Workaround for a bug caused from docker-compose to crash with error
   'write /dev/stderr: broken pipe'
