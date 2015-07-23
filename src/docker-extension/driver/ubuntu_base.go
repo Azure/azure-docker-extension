@@ -11,7 +11,7 @@ func (u ubuntuBaseDriver) InstallDocker() error {
 }
 
 func (u ubuntuBaseDriver) UninstallDocker() error {
-	if err := executil.ExecPipe("apt-get", "-qqy", "purge", "lxc-docker"); err != nil {
+	if err := executil.ExecPipe("apt-get", "-qqy", "purge", "docker-engine"); err != nil {
 		return err
 	}
 	return executil.ExecPipe("apt-get", "-qqy", "autoremove")

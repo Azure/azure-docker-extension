@@ -136,6 +136,9 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1507232004 (2015-07-23)
+- Updating the apt package name for uninstall step.
+
 # 1.0.1507151643 (2015-07-15)
 - Bump docker-compose to v1.3.2 from v1.2.0. (gh#41)
 
