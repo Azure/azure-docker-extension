@@ -10,7 +10,7 @@ type UbuntuSystemdDriver struct {
 }
 
 func (u UbuntuSystemdDriver) BaseOpts() []string {
-	return []string{"--daemon", "-H=fd://"}
+	return []string{"daemon", "-H=fd://"}
 }
 
 func (u UbuntuSystemdDriver) ChangeOpts(args string) error {
