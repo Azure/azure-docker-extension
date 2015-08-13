@@ -10,7 +10,7 @@ type UbuntuUpstartDriver struct {
 }
 
 func (u UbuntuUpstartDriver) BaseOpts() []string {
-	return []string{"--daemon", "-H=unix://"}
+	return []string{"-H=unix://"}
 }
 
 func (u UbuntuUpstartDriver) ChangeOpts(args string) error {

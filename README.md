@@ -136,6 +136,10 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1508121604 (2015-08-12)
+- Replaced '--daemon' flag with daemon due to breaking behavior introduced in
+  docker-1.8.0 release.
+
 # 1.0.1507232004 (2015-07-23)
 - Updating the apt package name for uninstall step.
 
