@@ -31,7 +31,7 @@ binary:
 	GOOS=linux GOARCH=amd64 go build -v -o $(BINDIR)/$(BIN) . 
 test:
 	if [ -z "$$GOPATH" ]; then echo "GOPATH is not set"; exit 1; fi
-	go test docker-extension/... -test.v
+	go test ./... -test.v
 clean:
 	rm -rf "$(BUNDLEDIR)"
 	rm -rf "$(BINDIR)"
