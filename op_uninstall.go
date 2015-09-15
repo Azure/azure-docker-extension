@@ -1,9 +1,8 @@
 package main
 
 import (
-	"vmextension"
-
-	"docker-extension/driver"
+	"github.com/Azure/azure-docker-extension/pkg/driver"
+	"github.com/Azure/azure-docker-extension/pkg/vmextension"
 )
 
 func uninstall(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"docker-extension/driver"
-	"vmextension"
+	"github.com/Azure/azure-docker-extension/pkg/driver"
+	"github.com/Azure/azure-docker-extension/pkg/vmextension"
 )
 
 type OperationFunc func(vmextension.HandlerEnvironment, driver.DistroDriver) error

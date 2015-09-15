@@ -1,9 +1,10 @@
 package driver
 
 import (
-	"docker-extension/dockeropts"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/Azure/azure-docker-extension/pkg/dockeropts"
 )
 
 func rewriteOpts(e dockeropts.Editor, cfgFile string, args string) error {

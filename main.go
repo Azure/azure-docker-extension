@@ -1,7 +1,6 @@
 package main
 
 import (
-	"executil"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,12 +9,13 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
-	"vmextension"
 
-	"docker-extension/distro"
-	"docker-extension/driver"
-	"docker-extension/status"
-	"docker-extension/util"
+	"github.com/Azure/azure-docker-extension/pkg/distro"
+	"github.com/Azure/azure-docker-extension/pkg/driver"
+	"github.com/Azure/azure-docker-extension/pkg/status"
+	"github.com/Azure/azure-docker-extension/pkg/util"
+	"github.com/Azure/azure-docker-extension/pkg/executil"
+	"github.com/Azure/azure-docker-extension/pkg/vmextension"
 )
 
 const (

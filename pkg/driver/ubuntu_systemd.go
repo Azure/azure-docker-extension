@@ -1,7 +1,7 @@
 package driver
 
 import (
-	"docker-extension/dockeropts"
+	"github.com/Azure/azure-docker-extension/pkg/dockeropts"
 )
 
 type UbuntuSystemdDriver struct {

@@ -1,17 +1,18 @@
 package main
 
 import (
-	"docker-extension/driver"
-	"docker-extension/util"
 	"encoding/base64"
-	"executil"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"vmextension"
+
+	"github.com/Azure/azure-docker-extension/pkg/driver"
+	"github.com/Azure/azure-docker-extension/pkg/executil"
+	"github.com/Azure/azure-docker-extension/pkg/util"
+	"github.com/Azure/azure-docker-extension/pkg/vmextension"
 
 	"gopkg.in/yaml.v2"
 )

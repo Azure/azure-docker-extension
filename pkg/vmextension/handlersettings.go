@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"executil"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+
+	"github.com/Azure/azure-docker-extension/pkg/executil"
 )
 
 const (

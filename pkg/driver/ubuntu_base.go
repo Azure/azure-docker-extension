@@ -1,7 +1,7 @@
 package driver
 
 import (
-	"executil"
+	"github.com/Azure/azure-docker-extension/pkg/executil"
 )
 
 type ubuntuBaseDriver struct{}

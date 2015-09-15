@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"docker-extension/distro"
+	"github.com/Azure/azure-docker-extension/pkg/distro"
 )
 
 type DistroDriver interface {

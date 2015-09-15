@@ -1,8 +1,8 @@
 package distro
 
 import (
-	util "docker-extension/util"
 	"fmt"
+	"github.com/Azure/azure-docker-extension/pkg/util"
 	"io/ioutil"
 	"os"
 )

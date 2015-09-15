@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"vmextension"
+
+	"github.com/Azure/azure-docker-extension/pkg/vmextension"
 )
 
 // publicSettings is the type deserialized from public configuration section.
