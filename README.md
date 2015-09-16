@@ -136,6 +136,11 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1509160543 (2015-09-16)
+- Workaround for undesirable behavior in WALA: Write .seqnum file to /tmp to
+  prevent multiple simultaneous calls to the extension with the same sequence
+  number.
+
 # 1.0.1508121604 (2015-08-12)
 - Replaced '--daemon' flag with daemon due to breaking behavior introduced in
   docker-1.8.0 release.
