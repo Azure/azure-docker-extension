@@ -136,6 +136,13 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1509171835 (2015-09-18)
+- Move 'install' stage to 'enable' step so that installation is not killed by
+  5-minute waagent timeout on slow regions and distros (such as Ubuntu LTS)
+  with many missing dependency packages.
+- Bump docker-compose to v1.4.0 from v1.3.2.
+- Extension now uninstalls docker-compose on 'uninstall' stage.
+
 # 1.0.1509160543 (2015-09-16)
 - Workaround for undesirable behavior in WALA: Write .seqnum file to /tmp to
   prevent multiple simultaneous calls to the extension with the same sequence

@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -18,8 +21,11 @@ import (
 )
 
 const (
-	composeDir     = "/etc/docker/compose"
+	composeUrl = "https://github.com/docker/compose/releases/download/1.4.1/docker-compose-Linux-x86_64"
+	composeBin = "docker-compose"
+
 	composeYml     = "docker-compose.yml"
+	composeYmlDir  = "/etc/docker/compose"
 	composeProject = "compose" // prefix for compose-created containers
 
 	dockerCfgDir  = "/etc/docker"
@@ -29,6 +35,36 @@ const (
 )
 
 func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
+	// Install docker daemon
+	log.Printf("++ install docker")
+	if _, err := exec.LookPath("docker"); err == nil {
+		log.Printf("docker already installed. not re-installing")
+	} else {
+		if err := d.InstallDocker(); err != nil {
+			return err
+		}
+	}
+	log.Printf("-- install docker")
+
+	// Install docker-compose
+	log.Printf("++ install docker-compose")
+	if err := installCompose(composeBinPath(d)); err != nil {
+		return fmt.Errorf("error installing docker-compose: %v", err)
+	}
+	log.Printf("-- install docker-compose")
+
+	// Add user to 'docker' group to user docker as non-root
+	u, err := util.GetAzureUser()
+	if err != nil {
+		return fmt.Errorf("failed to get provisioned user: %v", err)
+	}
+	log.Printf("++ add user to docker group")
+	if out, err := executil.Exec("usermod", "-aG", "docker", u); err != nil {
+		log.Printf("%s", string(out))
+		return err
+	}
+	log.Printf("-- add user to docker group")
+
 	settings, err := parseSettings(he.HandlerEnvironment.ConfigFolder)
 	if err != nil {
 		return err
@@ -72,6 +108,52 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 	return nil
 }
 
+// installCompose download docker-compose and saves to the specified path if it
+// is not already installed.
+func installCompose(path string) error {
+	// Check if already installed at path.
+	if ok, err := util.PathExists(path); err != nil {
+		return err
+	} else if ok {
+		log.Printf("docker-compose is already installed at %s", path)
+		return nil
+	}
+
+	// Create dir if not exists
+	dir := filepath.Dir(path)
+	ok, err := util.PathExists(dir)
+	if err != nil {
+		return err
+	} else if !ok {
+		if err := os.MkdirAll(dir, 755); err != nil {
+			return err
+		}
+	}
+
+	log.Printf("Downloading compose from %s", composeUrl)
+	resp, err := http.Get(composeUrl)
+	if err != nil {
+		return fmt.Errorf("error downloading docker-compose: %v", err)
+	}
+	if resp.StatusCode/100 != 2 {
+		return fmt.Errorf("response status code from %s: %s", composeUrl, resp.Status)
+	}
+	defer resp.Body.Close()
+
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0777)
+	if err != nil {
+		return fmt.Errorf("error creating %s: %v", path, err)
+	}
+
+	defer f.Close()
+	if _, err := io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("failed to save response body to %s: %v", path, err)
+	}
+	return nil
+}
+
+// loginRegistry calls the `docker login` command to authenticate the engine to the
+// specified registry with given credentials.
 func loginRegistry(s dockerLoginSettings) error {
 	if !s.HasLoginInfo() {
 		log.Println("registry login not specificied")
@@ -89,6 +171,14 @@ func loginRegistry(s dockerLoginSettings) error {
 	return executil.ExecPipe("docker", opts...)
 }
 
+// composeBinPath returns the path docker-compose binary should be installed at
+// on the host operating system.
+func composeBinPath(d driver.DistroDriver) string {
+	return filepath.Join(d.DockerComposeDir(), composeBin)
+}
+
+// composeUp converts given json to yaml, saves to a file on the host and
+// uses `docker-compose up -d` to create the containers.
 func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
 	if len(json) == 0 {
 		log.Println("docker-compose config not specified, noop")
@@ -101,17 +191,16 @@ func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
 		return fmt.Errorf("error converting to compose.yml: %v", err)
 	}
 
-	if err := os.MkdirAll(composeDir, 0777); err != nil {
-		return fmt.Errorf("failed creating %s: %v", composeDir, err)
+	if err := os.MkdirAll(composeYmlDir, 0777); err != nil {
+		return fmt.Errorf("failed creating %s: %v", composeYmlDir, err)
 	}
 	log.Printf("Using compose yaml:>>>>>\n%s\n<<<<<", string(yaml))
-	ymlPath := filepath.Join(composeDir, composeYml)
+	ymlPath := filepath.Join(composeYmlDir, composeYml)
 	if err := ioutil.WriteFile(ymlPath, yaml, 0666); err != nil {
 		return fmt.Errorf("error writing %s: %v", ymlPath, err)
 	}
 
-	compose := filepath.Join(d.DockerComposeDir(), composeBin)
-	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, compose, "-p", composeProject, "-f", ymlPath, "up", "-d")
+	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, composeBinPath(d), "-p", composeProject, "-f", ymlPath, "up", "-d")
 }
 
 // installDockerCerts saves the configured certs to the specified dir
@@ -169,6 +258,8 @@ func updateDockerOpts(dd driver.DistroDriver, args string) error {
 	return nil
 }
 
+// getArgs provides set of arguments that should be used in updating Docker
+// daemon options based on the distro.
 func getArgs(s DockerHandlerSettings, dd driver.DistroDriver) string {
 	args := dd.BaseOpts()
 
