@@ -112,7 +112,7 @@ breaking schema changes. To learn the latest version available, run:
 
     $ azure vm extension list
 
-You can also omit `--public-config-parh` and/or `--private-config-path` if you
+You can also omit `--public-config-path` and/or `--private-config-path` if you
 do not want to configure those settings.
 
 -----
