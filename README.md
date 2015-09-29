@@ -115,6 +115,40 @@ breaking schema changes. To learn the latest version available, run:
 You can also omit `--public-config-path` and/or `--private-config-path` if you
 do not want to configure those settings.
 
+## 3. Using Docker Extension in ARM templates
+
+You can provision Docker Extension in [Azure Resource templates](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authoring-templates/)
+by specifying it just like a resource in your template. The configuration keys
+go to `"settings"` section and (optionally) protected keys go to `"protectedSettings"` section.
+
+Example resource definition:
+
+```json
+{
+  "type": "Microsoft.Compute/virtualMachines/extensions",
+  "name": "[concat(variables('vmName'), '/DockerExtension'))]",
+  "apiVersion": "2015-05-01-preview",
+  "location": "[parameters('location')]",
+  "dependsOn": [
+    "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+  ],
+  "properties": {
+    "publisher": "Microsoft.Azure.Extensions",
+    "type": "DockerExtension",
+    "typeHandlerVersion": "1.0",
+    "autoUpgradeMinorVersion": true,
+    "settings": {},
+    "protectedSettings": {}
+  }
+}
+```
+
+You can find various usages of this at the following gallery templates:
+
+* https://github.com/Azure/azure-quickstart-templates/blob/master/docker-simple-on-ubuntu/azuredeploy.json
+* https://github.com/Azure/azure-quickstart-templates/tree/master/docker-wordpress-mysql
+* https://github.com/Azure/azure-quickstart-templates/tree/master/docker-swarm-cluster
+
 -----
 
 ### Supported Linux Distributions
