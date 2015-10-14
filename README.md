@@ -170,6 +170,10 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1510142311 (2015-10-14)
+- Configured docker-compose timeout to 15 minutes to prevent big images
+  from failing to be pulled down intermittently due to network conditions.
+
 # 1.0.1509171835 (2015-09-18)
 - Move 'install' stage to 'enable' step so that installation is not killed by
   5-minute waagent timeout on slow regions and distros (such as Ubuntu LTS)

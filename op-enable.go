@@ -17,12 +17,13 @@ import (
 	"github.com/Azure/azure-docker-extension/pkg/util"
 	"github.com/Azure/azure-docker-extension/pkg/vmextension"
 
-	"gopkg.in/yaml.v2"
+	yaml "github.com/cloudfoundry-incubator/candiedyaml"
 )
 
 const (
-	composeUrl = "https://github.com/docker/compose/releases/download/1.4.1/docker-compose-Linux-x86_64"
-	composeBin = "docker-compose"
+	composeUrl         = "https://github.com/docker/compose/releases/download/1.4.1/docker-compose-Linux-x86_64"
+	composeBin         = "docker-compose"
+	composeTimeoutSecs = 600
 
 	composeYml     = "docker-compose.yml"
 	composeYmlDir  = "/etc/docker/compose"
@@ -199,6 +200,14 @@ func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
 	if err := ioutil.WriteFile(ymlPath, yaml, 0666); err != nil {
 		return fmt.Errorf("error writing %s: %v", ymlPath, err)
 	}
+
+	// set timeout for docker-compose -> docker-engine interactions.
+	// When downloading large images, docker-compose intermittently times out
+	// (gh#docker/compose/issues/2186).
+	os.Setenv("COMPOSE_HTTP_TIMEOUT", fmt.Sprintf("%d", composeTimeoutSecs))  // versions <= 1.4.2
+	os.Setenv("DOCKER_CLIENT_TIMEOUT", fmt.Sprintf("%d", composeTimeoutSecs)) // version  >= 1.5.0
+	defer os.Unsetenv("COMPOSE_HTTP_TIMEOUT")
+	defer os.Unsetenv("DOCKER_CLIENT_TIMEOUT")
 
 	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, composeBinPath(d), "-p", composeProject, "-f", ymlPath, "up", "-d")
 }
