@@ -12,7 +12,7 @@ reference. You can read the User Guide below.
 
 Docker VM extension can:
 
-- Install latest stable version Docker on your VM
+- Install latest stable version of Docker Engine on your Linux VM
 - If provided, configures Docker daemon to listen on specified port, with given
   certs
 - If provided, launches the given containers using docker-compose
