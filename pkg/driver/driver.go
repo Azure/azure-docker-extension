@@ -41,7 +41,7 @@ func GetDriver(d distro.Info) (DistroDriver, error) {
 		} else if major < 15 {
 			return UbuntuUpstartDriver{}, nil
 		} else {
-			return UbuntuSystemdDriver{}, nil //TODO fix with systemd
+			return UbuntuSystemdDriver{}, nil
 		}
 	}
 
