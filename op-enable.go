@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	composeUrl         = "https://github.com/docker/compose/releases/download/1.4.1/docker-compose-Linux-x86_64"
+	composeUrl         = "https://github.com/docker/compose/releases/download/1.5.1/docker-compose-Linux-x86_64"
 	composeBin         = "docker-compose"
 	composeTimeoutSecs = 600
 
@@ -41,8 +41,36 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 	if _, err := exec.LookPath("docker"); err == nil {
 		log.Printf("docker already installed. not re-installing")
 	} else {
-		if err := d.InstallDocker(); err != nil {
-			return err
+		// TODO(ahmetb) Temporary retry logic around installation for serialization
+		// problem in Azure VM Scale Sets. In case of scale-up event, the new VM with
+		// multiple extensions (such as Linux Diagnostics and Docker Extension) will install
+		// the extensions in parallel and that will result in non-deterministic
+		// acquisition of dpkg lock (apt-get install) and thus causing one of the
+		// extensions to fail.
+		//
+		// Adding this temporary retry logic just for Linux Diagnostics extension
+		// assuming it will take at most 5 minutes to be done with apt-get lock.
+		//
+		// This retry logic should be removed once the issue is fixed on the resource
+		// provider layer.
+
+		var (
+			nRetries      = 6
+			retryInterval = time.Minute * 1
+		)
+
+		for nRetries > 0 {
+			if err := d.InstallDocker(); err != nil {
+				nRetries--
+				if nRetries == 0 {
+					return err
+				}
+				log.Printf("install failed. remaining attempts=%d. error=%v", nRetries, err)
+				log.Printf("sleeping %s", retryInterval)
+				time.Sleep(retryInterval)
+			} else {
+				break
+			}
 		}
 	}
 	log.Printf("-- install docker")

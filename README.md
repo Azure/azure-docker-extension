@@ -170,6 +170,11 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1512020618 (2015-12-01)
+- Bumped docker-compose version from v1.4.1 to v1.5.1.
+- Added retry logic around installation as a mitigation for a VM scale set
+  issue.
+
 # 1.0.1510142311 (2015-10-14)
 - Configured docker-compose timeout to 15 minutes to prevent big images
   from failing to be pulled down intermittently due to network conditions.
