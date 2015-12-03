@@ -155,6 +155,8 @@ You can find various usages of this at the following gallery templates:
 
 - CoreOS
 - Ubuntu 13 and higher
+- CentOS 7.1 and higher
+- Red Hat Enterprise Linux (RHEL) 7.1 and higher
 
 Other Linux distributions are currently not supported and extension
 is expected to fail on unsupported distributions.
@@ -170,6 +172,9 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.0.1512030601 (2015-12-02)
+- Added support for CentOS and Red Hat Enterprise Linux (RHEL).
+
 # 1.0.1512020618 (2015-12-01)
 - Bumped docker-compose version from v1.4.1 to v1.5.1.
 - Added retry logic around installation as a mitigation for a VM scale set
