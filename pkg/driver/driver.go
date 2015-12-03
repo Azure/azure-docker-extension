@@ -43,6 +43,10 @@ func GetDriver(d distro.Info) (DistroDriver, error) {
 		} else {
 			return UbuntuSystemdDriver{}, nil
 		}
+	} else if d.Id == distro.RhelID {
+		return RHELDriver{}, nil
+	} else if d.Id == distro.CentosID {
+		return CentOSDriver{}, nil
 	}
 
 	return nil, fmt.Errorf("Distro not supported: %s", d)
