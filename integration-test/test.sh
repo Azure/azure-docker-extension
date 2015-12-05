@@ -10,13 +10,12 @@ readonly TEST_REGION="Brazil South"
 readonly DISTROS=(
 	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Beta-877.1.0" \
 	"5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-71-20150731" \
-	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20151117-en-us-30GB" \
 	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-15_04-amd64-server-20151201-en-us-30GB" \
-
-)
+	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20151117-en-us-30GB" )
 
 # Test constants
 readonly SCRIPT_DIR=$(dirname $0)
+readonly CONCURRENCY=10
 readonly DOCKER_CERTS_DIR=dockercerts
 readonly VM_PREFIX=dockerexttest-
 readonly VM_USER=azureuser
@@ -54,7 +53,7 @@ command_exists() {
 }
 
 check_deps() {
-	local deps=(azure jq docker curl)
+	local deps=(azure jq docker curl parallel)
 
 	local cmd=
 	for cmd in "${deps[@]}"; do
@@ -117,10 +116,7 @@ generate_ssh_keys() {
 
 	log "Generating SSH keys..."
 	rm -f "$key" "$pub"
-	(
-		set -x
-		ssh-keygen -q -f "$key" -N ""
-	)
+	ssh-keygen -q -f "$key" -N ""
 	log "SSH keys generated."
 }
 
@@ -136,11 +132,7 @@ print_distros() {
 	for d in "${DISTROS[@]}"; do
 		log " - $(trim_publisher $d)"
 	done
-}
-
-vm_name() {
-	local i=$1
-	echo "$VM_PREFIX$i"
+	log "Total: ${#DISTROS[@]} VM images."
 }
 
 vm_fqdn() {
@@ -148,45 +140,29 @@ vm_fqdn() {
 	echo "$name.cloudapp.net"	
 }
 
-create_vm() {
-	local name=$1
-	local img=$2
-	local key=$(ssh_pub_key)
-
-	log "Creating VM $name ($(trim_publisher $img))..."
-	(
-		set -x
-		azure vm create $name $img \
-		  -e 22 -l "$TEST_REGION" \
-		  --no-ssh-password \
-		  --ssh-cert "$key" \
-		  $VM_USER 1>/dev/null
-
-		azure vm endpoint create $name 80 80 1>/dev/null
-		azure vm endpoint create $name 2376 2376 1>/dev/null
-	)
-	log "Created VM $name."
-}
-
 create_vms() {
 	generate_ssh_keys
 	print_distros
-	
-	local i=0
-	for d in "${DISTROS[@]}"; do
-		i=$(( i+1 ))
-		create_vm "$(vm_name $i)" "$d"
-	done
-}
 
-delete_vm() {
-	local name=$1
-	log "Deleting VM $name..."
-	(
-		set -x
-		azure vm delete -b -q "$name" 1>/dev/null
-	)
-	log "Deleted VM $name."
+	local key=$(ssh_pub_key)
+	local vm_count=${#DISTROS[@]}
+	local vm_names=$(parallel -j$CONCURRENCY echo $VM_PREFIX{} ::: $(seq 1 $vm_count))
+
+
+	log "Creating test VMs in parallel..."
+
+	# Print commands to be executed, then execute them
+	local cmd="azure vm create {1} {2} -e 22 -l '$TEST_REGION' --no-ssh-password --ssh-cert '$key' $VM_USER"
+	parallel --dry-run -j$CONCURRENCY --xapply $cmd ::: ${vm_names[@]} ::: ${DISTROS[@]}
+	parallel -j$CONCURRENCY --xapply $cmd 1>/dev/null ::: ${vm_names[@]} ::: ${DISTROS[@]}
+
+	log "Opening up ports in parallel..."
+	local ports=( 80 2376 )
+	for port in "${ports[@]}"; do # ports need to be added one by one for a single VM
+		local cmd="azure vm endpoint create {1} $port $port"
+		parallel --dry-run -j$CONCURRENCY $cmd ::: ${vm_names[@]}
+		parallel -j$CONCURRENCY $cmd 1>/dev/null ::: ${vm_names[@]}
+	done
 }
 
 get_vms() {
@@ -195,34 +171,34 @@ get_vms() {
 }
 
 delete_vms() {
-	log "Cleaning up test VMs..."
+	log "Cleaning up test VMs in parallel..."
+
+	local cmd="azure vm delete -b -q {}"
 	local vms=$(get_vms)
-	for vm in $vms; do
-		delete_vm "$vm"
-	done
-}
 
-add_extension_to_vm() {
-	local name=$1	
-	
-	local pub_config="$SCRIPT_DIR/$EXTENSION_CONFIG"
-	local prot_config="$SCRIPT_DIR/$EXTENSION_CONFIG_PROT"
+	is_empty "$vms" && { return; }
 
-	(
-		set -x
-		azure vm extension set $name \
-			$EXTENSION_NAME $EXTENSION_PUBLISHER $EXTENSION_VERSION \
-			--public-config-path  "$pub_config" \
-			--private-config-path "$prot_config" 1>/dev/null
-	)
+	# Print commands to be executed, then execute them
+	parallel --dry-run -j$CONCURRENCY "$cmd" ::: "${vms[@]}"
+	parallel -j$CONCURRENCY "$cmd" 1>/dev/null ::: "${vms[@]}"
+
+	log "Cleaned up all test VMs."
 }
 
 add_extension_to_vms() {
-	log "Adding extension to VMs..."
+	log "Adding extension to VMs in parallel..."
+
+	local pub_config="$SCRIPT_DIR/$EXTENSION_CONFIG"
+	local prot_config="$SCRIPT_DIR/$EXTENSION_CONFIG_PROT"
+
+	local cmd="azure vm extension set {} $EXTENSION_NAME $EXTENSION_PUBLISHER $EXTENSION_VERSION --public-config-path '$pub_config' --private-config-path '$prot_config'"
 	local vms=$(get_vms)
-	for vm in $vms; do
-		add_extension_to_vm "$vm"
-	done
+
+	# Print commands to be executed, then execute them
+	parallel --dry-run -j$CONCURRENCY "$cmd" ::: "${vms[@]}"
+	parallel -j$CONCURRENCY "$cmd" 1>/dev/null ::: "${vms[@]}"
+
+	log "Added $EXTENSION_NAME to all test VMs."
 }
 
 docker_addr() {
@@ -244,12 +220,10 @@ wait_for_docker() {
 	local docker_env="DOCKER_CERT_PATH=\"$docker_certs\" DOCKER_HOST=\"$addr\""
 	local docker_cmd="docker --tls info"
 	log "Waiting for Docker engine on $addr..."
-	echo "+ $docker_cmd"
+	echo "+ $docker_env $docker_cmd"
 	
 	while true; do
 		set +e # ignore errors b/c the following command will retry
-
-		set +e
 		eval $docker_env $docker_cmd 1>/dev/null 2>&1
 		local exit_code=$?
 		set -e
@@ -260,7 +234,7 @@ wait_for_docker() {
 		else
 			log "Authenticated to docker engine at $addr."
 			# Check if docker.options in public.json took effect
-			local docker_info_out="$(eval $docker_cmd 2>&1)"
+			local docker_info_out="$(eval $docker_env $docker_cmd 2>&1)"
 			if [[ "$docker_info_out" != *"foo=bar"* ]]; then
 				err "Docker engine label (foo=bar) specified in extension configuration did not take effect."
 				log "docker info output:"
@@ -282,7 +256,7 @@ wait_for_container() {
 	echo "+ $curl_cmd"
 	
 	while true; do
-		set +e
+		set +e # ignore errors b/c the following command will retry
 		eval $curl_cmd 2>&1 1>/dev/null
 		local exit_code=$?
 		set -e
@@ -322,14 +296,23 @@ validate_extension_version() {
 	log "VM has the correct version of $EXTENSION_NAME."
 }
 
+vm_ssh_cmd() {
+	local fqdn=$1
+	echo "ssh -i '$(ssh_key)' ${VM_USER}@${fqdn}"
+}
+
 validate_vm() {
 	local name=$1
 	local fqdn=$(vm_fqdn $name)
 
 	log "Validating $EXTENSION_NAME on VM '$name'"
+	log "    (To debug issues: $(echo $(vm_ssh_cmd $fqdn)))"
 	wait_for_docker $fqdn
 	wait_for_container $fqdn
 	validate_extension_version $fqdn
+
+	log "VM is O.K.: $name."
+	echo
 }
 
 validate_vms() {
@@ -341,12 +324,12 @@ validate_vms() {
 }
 
 main() {
+	check_deps
 	intro
 
 	read -p "Expected $EXTENSION_NAME version in VMs (e.g. 1.0.1512030601): " expected_extension_ver
-	is_empty $expected_extension_ver && { err "Empty string passed"; exit 1; }
+	is_empty "$expected_extension_ver" && { err "Empty string passed"; exit 1; }
 
-	check_deps
 	check_asm
 	set_subs
 
@@ -356,12 +339,11 @@ main() {
 	validate_vms
 
 	log "Test run is successful!"
-	echo
 	log "Cleaning up test artifacts..."
 	delete_vms
 
 	echo
-	log "Done."
+	log "Success."
 }
 
 
