@@ -1,0 +1,16 @@
+{
+	"docker" : {
+		"port" : "2376",
+		"options" : [
+			"--label",
+			"foo=bar"
+			]
+	},
+	"compose" : {
+		"web" : { 
+			"image" : "nginx",
+			"restart" : "always",
+			"ports" : ["80:80"]
+		}
+	}
+}
