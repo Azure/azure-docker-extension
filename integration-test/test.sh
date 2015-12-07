@@ -37,17 +37,6 @@ err() {
 	echo >&2 "[$(date +%T)][ERROR]" "$@"
 }
 
-is_empty() {
-    local var=$1
-    [[ -z $var ]]
-}
-
-is_file() {
-    local file=$1
-    [[ -f $file ]]
-}
-
-
 command_exists() {
 	command -v "$@" > /dev/null 2>&1
 }
@@ -109,10 +98,10 @@ generate_ssh_keys() {
 	local key=$(ssh_key)
 	local pub=$(ssh_pub_key)
 
-	is_file "$key" && is_file "$pub" && {
+	if [[ -f "$key" ]] && [[ -f "$pub" ]];then
 		# no need to regenerate keys
 		return
-	}
+	fi
 
 	log "Generating SSH keys..."
 	rm -f "$key" "$pub"
@@ -176,7 +165,9 @@ delete_vms() {
 	local cmd="azure vm delete -b -q {}"
 	local vms=$(get_vms)
 
-	is_empty "$vms" && { return; }
+	if [[ -z "$vms" ]]; then
+		return
+	fi
 
 	# Print commands to be executed, then execute them
 	parallel --dry-run -j$CONCURRENCY "$cmd" ::: "${vms[@]}"
@@ -203,7 +194,7 @@ add_extension_to_vms() {
 
 docker_addr() {
 	local fqdn=$1
-	echo "tcp://$1:2376"
+	echo "tcp://$fqdn:2376"
 }
 
 docker_cert_path() {
@@ -284,10 +275,10 @@ validate_extension_version() {
 
 	echo "+ $docker_env $docker_cmd"
 	local version="$(eval $docker_env $docker_cmd 2>/dev/null | sed "s/^$prefix//g")"
-	is_empty "$version" && {
+	if [[ -z "$version" ]]; then
 		err "Could not locate $EXTENSION_NAME version."
 		exit 1
-	}
+	fi
 	
 	if [[ "$version" != "$expected_extension_ver" ]]; then
 		err "Wrong $EXTENSION_NAME encountered: '$version' (expected: '$expected_extension_ver')."
@@ -323,28 +314,26 @@ validate_vms() {
 	done
 }
 
-main() {
-	check_deps
-	intro
-
+read_version() {
 	read -p "Expected $EXTENSION_NAME version in VMs (e.g. 1.0.1512030601): " expected_extension_ver
-	is_empty "$expected_extension_ver" && { err "Empty string passed"; exit 1; }
-
-	check_asm
-	set_subs
-
-	delete_vms
-	create_vms
-	add_extension_to_vms
-	validate_vms
-
-	log "Test run is successful!"
-	log "Cleaning up test artifacts..."
-	delete_vms
-
-	echo
-	log "Success."
+	if [[ -z "$expected_extension_ver" ]]; then
+		err "Empty string passed"
+		exit 1
+	fi
 }
 
+check_deps
+intro
+read_version
+check_asm
+set_subs
 
-main
+delete_vms
+create_vms
+add_extension_to_vms
+validate_vms
+
+log "Test run is successful!"
+log "Cleaning up test artifacts..."
+delete_vms
+log "Success."
