@@ -1,4 +1,4 @@
-# Maintainer's Guide
+# Maintainer’s Guide
 
 ## Publishing a new version
 
@@ -8,14 +8,14 @@ Make the code changes and run `make bundle`.
 
 This will compile and create the extension handler zip package to `bundle/` directory.
 
-### 2. Bump the version
+### 2. Bump the version (except hotfixes)
 
 Extension follows the semantic versioning [MAJOR].[MINOR].[PATCH]. The MAJOR/MINOR
 are stored in the `Makefile` and PATCH is the build date of the bundle in `yymmddHHMM`
 format.
 
-* **Bump `MAJOR` if**: you're introducing breaking changes in the config schema
-* **Bump `MINOR` if**: you're adding new features (no need for hotfixes or minor nits)
+* **Bump `MAJOR` if**: you are introducing breaking changes in the config schema
+* **Bump `MINOR` if**: you are adding new features (no need for hotfixes or minor nits)
 
 You need to edit `Makefile` if you need to change those version numbers. When the
 extension published, the version would look like `1.0.1506041803`.
@@ -26,7 +26,6 @@ PATCH  | The VM reboots
 MINOR  | The VM reboots, if the user has opted in for them (e.g. specified version as `1.*`)
 MAJOR  | Never, unless user redeploys the extension with the new version number.
 
-
 ### 3. Publish to Production
 
 Publishing takes 4 steps and all can be done using `make` commands.
@@ -36,44 +35,68 @@ before going through these commands.
 
 #### 3.1. Publish to Slice 1
 
-"Slice 1" means you publish the extension internally only to your own publisher subscription
+“Slice 1” means you publish the extension internally only to your own publisher subscription
 (hardcoded in Makefile). Use `make publish` to do this. It will upload the package to
 blob storage, will publish the extension.
 
-Once you see "HTTP 202 Accepted" in the response, run `make listversions` to see if your version became
-`<Status>Completed</Status>` on all regions and wait until it does so. (You can check the replication
-status via `make replicationstatus`). Based on the load on PIR it may take between 5 minutes to 10 hours
-(based on personal experience).
+Once you see “HTTP 202 Accepted” in the response, run `make replicationstatus` and wait until
+the version is replicated to all regions. (It should say `<Status>Completed</Status>` on all regions.)
 
-After the extension is listed as replicated, deploy to a VM using xplat-cli (see User Guide). Until
-Slice 2, you cannot specify the version with asterisk (e.g. `1.*`). Once extension makes it to the
-VM (you can watch `/var/log/waagent.log`) and works correctly as you expected, proceed.
+Based on the load on PIR it may take from 10 minutes to 10 hours to replicate.
 
-(If you want to delete the version, use `make deleteversion` at this step.)
+#### 3.2. Integration Tests
 
-#### 3.2. Publish to Slice 2
+After the extension is listed as replicated, you can run integration tests to deploy the extension
+to some images and test it is actually working.
 
-"Slice 2" means you publish the extension publicly to one Azure PROD  region. The region is hardcoded in
+For that, make sure you have install `azure` CLI installed and `azure login` is completed.
+
+Then run:
+
+    ./integration-test/test.sh
+
+The tests will:
+
+1. Create test VMs with various distro images in test subscription.
+2. Add extension to the VMs with a config that exercises the features.
+3. Verify the correct version of the extension is landed to VMs.
+4. Verify connectivity to docker-engine with TLS certs.
+5. Verify other configuration is taking effect (containers are created etc.)
+6. Tear down the test VMs.
+
+If the test gets stuck in a verification step and keeps printing `...`s for more than 5 minutes,
+it is very likely something is going badly. You can ssh into the VM (command is printed in the test
+output) and see what is going on.
+
+(If you want to delete the buggy version, use `make deleteversion` at this step.)
+
+#### 3.3. Publish to Slice 2
+
+“Slice 2” means you publish the extension publicly to one Azure PROD  region. The region is hardcoded in
 `Makefile` (preferably a less used region). Run `make slice2` to publish it. This may take a few minutes,
 watch the status with `make listversions` (watch for the `<Regions>` and `<IsInternal>false</IsInternal>`.
 
-#### 3.3. Publish to Slice 3
+#### 3.4. Publish to Slice 3
 
-Same as ”Slice 2”, but publishes to one more Azure PROD region. Run `make slice3` and watch result using
+Same as “Slice 2”, but publishes to one more Azure PROD region. Run `make slice3` and watch result using
 `make listversions`.
 
-#### 3.4. Publish to Slice 4
+#### 3.5. Publish to Slice 4
 
 This step publishes the VM extension to **all Azure PROD regions** (be careful).
 Run `make slice4` and watch result using `make listversions`.
 
 Once completed, run `azure vm extension list --json` command from a subscription that is not a publisher
-subscription to verify if the new version is available.
+subscription to verify if the new version is available (not applicable for hotfixes).
 
 ### 4. Take a code snapshot
 
-Once the version is successful and works in Production, document the changes in README.md
-“Changelog” section, commit the changes and create a tag with the version number you published e.g.:
+Once the version is successful and works in Production:
+
+1. Document the changes in README.md “Changelog” section
+2. Commit the changes ti your own fork
+3. End a pull request to Azure repo
+4. Create a tag with the version number you published e.g.:
 
     git tag 1.0.1506041803
     git push --tags

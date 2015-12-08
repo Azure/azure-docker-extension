@@ -17,8 +17,8 @@ MAJOR=1
 MINOR=0
 
 # Regions for rolling out to PROD slices (not-so-popular regions).
-REGION1=Southeast Asia
-REGION2=Brazil South
+REGION1=Brazil South
+REGION2=Japan West
 
 bundle: clean binary
 	@mkdir -p $(BUNDLEDIR)

@@ -4,3 +4,6 @@ bundle
 
 # go build . output
 azure-docker-extension
+
+# integration test ssh keys
+integration-test/id_rsa**
