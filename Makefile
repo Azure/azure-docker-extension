@@ -14,7 +14,7 @@ SUBS_ID=c3dfd792-49a4-4b06-80fc-6fc6d06c4742
 # Bump MAJOR for breaking changes, MINOR for new features
 # BUILD is yymmddHHMM of the bundle.
 MAJOR=1
-MINOR=0
+MINOR=1
 
 # Regions for rolling out to PROD slices (not-so-popular regions).
 REGION1=Brazil South

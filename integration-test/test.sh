@@ -17,15 +17,13 @@ readonly DISTROS=(
 readonly SCRIPT_DIR=$(dirname $0)
 readonly CONCURRENCY=10
 readonly DOCKER_CERTS_DIR=dockercerts
-readonly VM_PREFIX=dockerexttest-
+readonly VM_PREFIX=dockerextensiontest-
 readonly VM_USER=azureuser
 readonly EXTENSION_NAME=DockerExtension
 readonly EXTENSION_PUBLISHER=Microsoft.Azure.Extensions
-readonly EXTENSION_VERSION=1.0
 readonly EXTENSION_CONFIG=extensionconfig/public.json
 readonly EXTENSION_CONFIG_PROT=extensionconfig/protected.json
 expected_extension_version=
-
 
 ### Functions
 
@@ -141,7 +139,7 @@ create_vms() {
 	log "Creating test VMs in parallel..."
 
 	# Print commands to be executed, then execute them
-	local cmd="azure vm create {1} {2} -e 22 -l '$TEST_REGION' --no-ssh-password --ssh-cert '$key' $VM_USER"
+	local cmd="azure vm create {1} {2} -e 22 -l '$TEST_REGION' --no-ssh-password --ssh-cert '$key' $VM_USER -vv"
 	parallel --dry-run -j$CONCURRENCY --xapply $cmd ::: ${vm_names[@]} ::: ${DISTROS[@]}
 	parallel -j$CONCURRENCY --xapply $cmd 1>/dev/null ::: ${vm_names[@]} ::: ${DISTROS[@]}
 
@@ -182,7 +180,7 @@ add_extension_to_vms() {
 	local pub_config="$SCRIPT_DIR/$EXTENSION_CONFIG"
 	local prot_config="$SCRIPT_DIR/$EXTENSION_CONFIG_PROT"
 
-	local cmd="azure vm extension set {} $EXTENSION_NAME $EXTENSION_PUBLISHER $EXTENSION_VERSION --public-config-path '$pub_config' --private-config-path '$prot_config'"
+	local cmd="azure vm extension set {} $EXTENSION_NAME $EXTENSION_PUBLISHER '*' --public-config-path '$pub_config' --private-config-path '$prot_config'"
 	local vms=$(get_vms)
 
 	# Print commands to be executed, then execute them
@@ -253,7 +251,7 @@ wait_for_container() {
 		set -e
 
 		if [ $exit_code -eq 0 ]; then
-			log "Web container is up."
+			log "Web server container is up."
 			return
 		fi
 		printf '.'
@@ -287,6 +285,33 @@ validate_extension_version() {
 	log "VM has the correct version of $EXTENSION_NAME."
 }
 
+validate_secret_env() {
+	local fqdn=$1
+	local docker_env="DOCKER_CERT_PATH=\"$(docker_cert_path)\" DOCKER_HOST=\"$(docker_addr $fqdn)\""
+	local docker_cmd="docker --tls run --rm -i -v /test:/test busybox cat /test/env.txt"
+
+	log "Validating protected environment variable."
+	echo "+ $docker_env $docker_cmd"
+	local i=0
+	while true; do
+		set +e
+		local output="$(eval $docker_env $docker_cmd 2>&1)"
+		set -e
+		if [[ "$output" == *"SECRET_KEY=SECRET_VALUE"* ]]; then
+			log "Secret variable found in environment."
+			return
+		elif [[ $i -gt 5 ]]; then
+			log "Environment file served does not contain protected env key 'SECRET_KEY':"
+			echo "$output"
+			exit 1
+		fi
+		(( i++ ))
+		print '.'
+		sleep 5
+	done
+
+}
+
 vm_ssh_cmd() {
 	local fqdn=$1
 	echo "ssh -i '$(ssh_key)' ${VM_USER}@${fqdn}"
@@ -299,8 +324,9 @@ validate_vm() {
 	log "Validating $EXTENSION_NAME on VM '$name'"
 	log "    (To debug issues: $(echo $(vm_ssh_cmd $fqdn)))"
 	wait_for_docker $fqdn
-	wait_for_container $fqdn
 	validate_extension_version $fqdn
+	wait_for_container $fqdn
+	validate_secret_env $fqdn
 
 	log "VM is O.K.: $name."
 	echo

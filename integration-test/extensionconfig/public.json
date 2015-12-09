@@ -7,6 +7,12 @@
 			]
 	},
 	"compose" : {
+		"env" : {
+			"image" : "busybox",
+			"volumes": ["/test:/test"],
+			"environment": ["SECRET_KEY"],
+			"command": "/bin/sh -c 'env > /test/env.txt'"
+		},
 		"web" : { 
 			"image" : "nginx",
 			"restart" : "always",

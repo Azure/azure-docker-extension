@@ -130,7 +130,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 
 	// Compose Up
 	log.Printf("++ compose up")
-	if err := composeUp(d, settings.ComposeJson); err != nil {
+	if err := composeUp(d, settings.ComposeJson, settings.Environment); err != nil {
 		return fmt.Errorf("'compose up' failed: %v", err)
 	}
 	log.Printf("-- compose up")
@@ -208,7 +208,7 @@ func composeBinPath(d driver.DistroDriver) string {
 
 // composeUp converts given json to yaml, saves to a file on the host and
 // uses `docker-compose up -d` to create the containers.
-func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
+func composeUp(d driver.DistroDriver, json map[string]interface{}, env map[string]string) error {
 	if len(json) == 0 {
 		log.Println("docker-compose config not specified, noop")
 		return nil
@@ -236,6 +236,13 @@ func composeUp(d driver.DistroDriver, json map[string]interface{}) error {
 	os.Setenv("DOCKER_CLIENT_TIMEOUT", fmt.Sprintf("%d", composeTimeoutSecs)) // version  >= 1.5.0
 	defer os.Unsetenv("COMPOSE_HTTP_TIMEOUT")
 	defer os.Unsetenv("DOCKER_CLIENT_TIMEOUT")
+
+	// set protected environment variables to be used in docker-compose
+	for k, v := range env {
+		log.Printf("Setting protected environment variable '%s'.", k)
+		os.Setenv(k, v)
+		defer os.Unsetenv(k)
+	}
 
 	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, composeBinPath(d), "-p", composeProject, "-f", ymlPath, "up", "-d")
 }
