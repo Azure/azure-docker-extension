@@ -31,7 +31,8 @@ this:
   * `options`: (optional, string array) command line options passed to the
     Docker engine
 * `compose`: (optional, JSON object) the compose.yml file to be used, [converted
-  to JSON][yaml-to-json].
+  to JSON][yaml-to-json]. If you are considering to embed secrets as environment
+  variables in this section, please see the `"environment"` key described below.
 
 A minimal simple configuration would be an empty json object (`{}`) or a more
 advanced one like this:
@@ -64,6 +65,9 @@ the Docker engine to public internet without authentication.
 Schema for the protected configuration file stores the secrets that are passed
 to the Docker engine looks like this:
 
+* `environment`: (optional, JSON object) Key value pairs to store environment variables
+  to be passed to `docker-compose` securely. By using this, you can avoid embedding secrets
+  in the unencrypted `"compose"` section.
 * `certs`: (optional, JSON object)
   * `ca`: (required, string): base64 encoded CA certificate, passed to the engine as `--tlscacert`
   * `cert`: (required, string): base64 encoded TLS certificate, passed to the engine as `--tlscert`
@@ -83,7 +87,11 @@ Docker Hub account would look like this:
 
 ```json
 {
-	"certs": {
+    "environment" : {
+        "SECRET_ENV": "<<secret-value>>",
+	"MYSQL_ROOT_PASSWORD": "very-secret-password"
+    },
+    "certs": {
     	"ca": "<<base64 encoded ~/docker/ca.pem>>",
         "cert": "<<base64 encoded ~/docker/cert.pem>>",
         "key": "<<base64 encoded ~/docker/key.pem>>"
@@ -102,11 +110,11 @@ Using [**Azure CLI**][azure-cli]: Once you have a VM created on Azure and
 configured your `pub.json` and `prot.json` (in section 1.1 and 1.2 above), you
 can add the Docker Extension to the virtual machine by running:
 
-    $ azure vm extension set 'yourVMname' DockerExtension Microsoft.Azure.Extensions '1.0' \
+    $ azure vm extension set 'yourVMname' DockerExtension Microsoft.Azure.Extensions '1.1' \
     --public-config-path pub.json  \
     --private-config-path prot.json
 
-In the command above, you can change version (1.0) with `'*'` to use latest
+In the command above, you can change version with `'*'` to use latest
 version available, or `'1.*'` to get newest version that does not introduce non-
 breaking schema changes. To learn the latest version available, run:
 
@@ -135,7 +143,7 @@ Example resource definition:
   "properties": {
     "publisher": "Microsoft.Azure.Extensions",
     "type": "DockerExtension",
-    "typeHandlerVersion": "1.0",
+    "typeHandlerVersion": "1.1",
     "autoUpgradeMinorVersion": true,
     "settings": {},
     "protectedSettings": {}
@@ -172,6 +180,11 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.1.1512090359 (2015-12-08)
+- Introduced secure delivery of secrets through "environment" section of
+  protected configuration to be passed to docker-compose. Users do not have
+  to embed secrets in the "compose" section anymore.
+
 # 1.0.1512030601 (2015-12-02)
 - Added support for CentOS and Red Hat Enterprise Linux (RHEL).
 

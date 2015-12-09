@@ -15,8 +15,9 @@ type publicSettings struct {
 // protectedSettings is the type decoded and deserialized from protected
 // configuration section.
 type protectedSettings struct {
-	Certs dockerCertSettings  `json:"certs"`
-	Login dockerLoginSettings `json:"login"`
+	Certs       dockerCertSettings  `json:"certs"`
+	Login       dockerLoginSettings `json:"login"`
+	Environment map[string]string   `json:"environment"`
 }
 
 type dockerEngineSettings struct {
