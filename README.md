@@ -7,7 +7,7 @@ The source code is meant to be used by Microsoft Azure employees publishing the
 extension and the source code is open sourced under Apache 2.0 License for
 reference. You can read the User Guide below.
 
-* [Learn more: Azure Virtual Machine Extensions](https://msdn.microsoft.com/en-us/library/azure/dn606311.aspx)
+* [Learn more: Azure Virtual Machine Extensions](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-extensions-features/)
 * [How to use: Docker VM Extension](http://azure.microsoft.com/en-us/documentation/articles/virtual-machines-docker-vm-extension/)
 
 Docker VM extension can:
