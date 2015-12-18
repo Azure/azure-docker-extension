@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -197,7 +198,11 @@ func loginRegistry(s dockerLoginSettings) error {
 	if s.Server != "" {
 		opts = append(opts, s.Server)
 	}
-	return executil.ExecPipe("docker", opts...)
+	_, err := executil.Exec("docker", opts...)
+	if err != nil {
+		return errors.New("'docker login' failed")
+	}
+	return nil
 }
 
 // composeBinPath returns the path docker-compose binary should be installed at
