@@ -180,6 +180,9 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.1.1512180541 (2015-12-17)
+- Security fix: prevent clear-text registry credentials from being logged.
+
 # 1.1.1512090359 (2015-12-08)
 - Introduced secure delivery of secrets through "environment" section of
   protected configuration to be passed to docker-compose. Users do not have
