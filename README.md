@@ -180,6 +180,14 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.1.1601070410 (2016-01-06)
+- Fix: eliminate redundant restarting of docker-engine. This avoids restart of
+  docker-engine service (and thus containers) when (1) VM boots (2) waagent
+  calls extension's enable command in case of GoalState changes such as Load
+  Balancer updates.
+- Fix: Write .status file before forking into background in 'enable' command.
+  This is a workaround for waagent 2.1.x.
+
 # 1.1.1512180541 (2015-12-17)
 - Security fix: prevent clear-text registry credentials from being logged.
 

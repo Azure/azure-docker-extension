@@ -139,7 +139,7 @@ create_vms() {
 	log "Creating test VMs in parallel..."
 
 	# Print commands to be executed, then execute them
-	local cmd="azure vm create {1} {2} -e 22 -l '$TEST_REGION' --no-ssh-password --ssh-cert '$key' $VM_USER -vv"
+	local cmd="azure vm create {1} {2} -e 22 -l '$TEST_REGION' --no-ssh-password --ssh-cert '$key' $VM_USER"
 	parallel --dry-run -j$CONCURRENCY --xapply $cmd ::: ${vm_names[@]} ::: ${DISTROS[@]}
 	parallel -j$CONCURRENCY --xapply $cmd 1>/dev/null ::: ${vm_names[@]} ::: ${DISTROS[@]}
 

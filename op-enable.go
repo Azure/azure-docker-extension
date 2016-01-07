@@ -109,15 +109,23 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 
 	// Update dockeropts
 	log.Printf("++ update dockeropts")
-	if err := updateDockerOpts(d, getArgs(*settings, d)); err != nil {
+	restartNeeded, err := updateDockerOpts(d, getArgs(*settings, d))
+	if err != nil {
 		return fmt.Errorf("failed to update dockeropts: %v", err)
 	}
+	log.Printf("restart needed: %v", restartNeeded)
 	log.Printf("-- update dockeropts")
 
 	// Restart docker
 	log.Printf("++ restart docker")
-	if err := d.RestartDocker(); err != nil {
-		return err
+	if !restartNeeded {
+		log.Printf("no restart needed. issuing only a start command.")
+		_ = d.StartDocker() // ignore error as it already may be running due to multiple calls to enable
+	} else {
+		log.Printf("restarting docker-engine")
+		if err := d.RestartDocker(); err != nil {
+			return err
+		}
 	}
 	time.Sleep(3 * time.Second) // wait for instance to come up
 	log.Printf("-- restart docker")
@@ -299,12 +307,13 @@ func installDockerCerts(s DockerHandlerSettings, dstDir string) error {
 	return nil
 }
 
-func updateDockerOpts(dd driver.DistroDriver, args string) error {
+func updateDockerOpts(dd driver.DistroDriver, args string) (bool, error) {
 	log.Printf("Updating daemon args to: %s", args)
-	if err := dd.ChangeOpts(args); err != nil {
-		return fmt.Errorf("error updating DOCKER_OPTS: %v", err)
+	restartNeeded, err := dd.UpdateDockerArgs(args)
+	if err != nil {
+		return false, fmt.Errorf("error updating DOCKER_OPTS: %v", err)
 	}
-	return nil
+	return restartNeeded, nil
 }
 
 // getArgs provides set of arguments that should be used in updating Docker

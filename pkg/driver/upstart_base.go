@@ -13,6 +13,10 @@ func (d upstartBaseDriver) RestartDocker() error {
 	return executil.ExecPipe("service", "docker", "restart")
 }
 
+func (d upstartBaseDriver) StartDocker() error {
+	return executil.ExecPipe("service", "docker", "start")
+}
+
 func (d upstartBaseDriver) StopDocker() error {
 	return executil.ExecPipe("service", "docker", "stop")
 }
