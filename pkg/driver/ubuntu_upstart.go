@@ -13,8 +13,8 @@ func (u UbuntuUpstartDriver) BaseOpts() []string {
 	return []string{"-H=unix://"}
 }
 
-func (u UbuntuUpstartDriver) ChangeOpts(args string) error {
-	const cfg = "/etc/default/docker"
+func (u UbuntuUpstartDriver) UpdateDockerArgs(args string) (bool, error) {
+	const cfgPath = "/etc/default/docker"
 	e := dockeropts.UpstartCfgEditor{}
-	return rewriteOpts(e, cfg, args)
+	return rewriteOpts(e, cfgPath, args)
 }

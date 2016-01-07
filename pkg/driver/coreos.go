@@ -27,7 +27,7 @@ func (c CoreOSDriver) DockerComposeDir() string { return "/opt/bin" }
 
 func (c CoreOSDriver) BaseOpts() []string { return []string{} }
 
-func (c CoreOSDriver) ChangeOpts(args string) error {
+func (c CoreOSDriver) UpdateDockerArgs(args string) (bool, error) {
 	const dropInDir = "/run/systemd/system/docker.service.d"
 	const dropInFile = "10-docker-extension.conf"
 
@@ -35,9 +35,9 @@ func (c CoreOSDriver) ChangeOpts(args string) error {
 Environment="DOCKER_OPTS=%s"`, args))
 
 	if err := os.MkdirAll(dropInDir, 0755); err != nil {
-		return fmt.Errorf("error creating %s dir: %v", dropInDir, err)
+		return false, fmt.Errorf("error creating %s dir: %v", dropInDir, err)
 	}
 	err := ioutil.WriteFile(filepath.Join(dropInDir, dropInFile), data, 0644)
 	log.Println("Written systemd service drop-in to disk.")
-	return err
+	return true, err
 }

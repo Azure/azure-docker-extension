@@ -13,9 +13,10 @@ type DistroDriver interface {
 	DockerComposeDir() string
 
 	BaseOpts() []string
-	ChangeOpts(args string) error
+	UpdateDockerArgs(args string) (restartNeeded bool, err error)
 
 	RestartDocker() error
+	StartDocker() error
 	StopDocker() error
 	UninstallDocker() error
 }

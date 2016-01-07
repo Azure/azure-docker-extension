@@ -14,6 +14,10 @@ func (d systemdBaseDriver) RestartDocker() error {
 	return executil.ExecPipe("systemctl", "restart", "docker")
 }
 
+func (d systemdBaseDriver) StartDocker() error {
+	return executil.ExecPipe("systemctl", "start", "docker")
+}
+
 func (d systemdBaseDriver) StopDocker() error {
 	return executil.ExecPipe("systemctl", "stop", "docker")
 }
@@ -22,7 +26,7 @@ func (d systemdBaseDriver) StopDocker() error {
 // file in-place.
 type systemdUnitOverwriteDriver struct{}
 
-func (u systemdUnitOverwriteDriver) ChangeOpts(args string) error {
+func (u systemdUnitOverwriteDriver) UpdateDockerArgs(args string) (bool, error) {
 	const cfg = "/lib/systemd/system/docker.service"
 	e := dockeropts.SystemdUnitEditor{}
 	return rewriteOpts(e, cfg, args)
