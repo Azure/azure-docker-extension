@@ -180,6 +180,10 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.1.1601140348 (2016-01-13)
+- Fix: eliminate redundant restarts of docker-engine on CoreOS if configuration
+  is not changed.
+
 # 1.1.1601070410 (2016-01-06)
 - Fix: eliminate redundant restarting of docker-engine. This avoids restart of
   docker-engine service (and thus containers) when (1) VM boots (2) waagent
