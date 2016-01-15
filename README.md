@@ -89,7 +89,7 @@ Docker Hub account would look like this:
 {
     "environment" : {
         "SECRET_ENV": "<<secret-value>>",
-	"MYSQL_ROOT_PASSWORD": "very-secret-password"
+        "MYSQL_ROOT_PASSWORD": "very-secret-password"
     },
     "certs": {
     	"ca": "<<base64 encoded ~/docker/ca.pem>>",
