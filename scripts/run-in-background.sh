@@ -2,6 +2,11 @@
 set -eu
 readonly SCRIPT_DIR=$(dirname $0)
 
+# Script logs its output (stdout/stderr) simultaneously to a file
+# as waagent does not capture output of processes it starts.
+exec > >(tee -ia /var/log/azure-docker-extension-enable.log)
+exec 2>&1
+
 # This script kicks off the ./bin/docker-extension in the
 # background and disowns it with nohup. This is a workaround
 # for the 5-minute time limit for 'enable' step and 15-minute
@@ -53,4 +58,4 @@ write_status() {
 
 write_status
 set -x
-nohup $(readlink -f "$SCRIPT_DIR/../bin/docker-extension") $@ > /var/log/nohup.log &
+nohup $(readlink -f "$SCRIPT_DIR/../bin/docker-extension") $@ &

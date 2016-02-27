@@ -18,7 +18,7 @@ This will compile and create the extension handler zip package to `bundle/` dire
 ### 2. Upload the package
 
 Extension follows the semantic versioning [MAJOR].[MINOR].[PATCH]. The MAJOR/MINOR
-are stored in the `Makefile` and PATCH is the build date of the bundle in `yymmddHHMM`
+are stored in the `Makefile` and PATCH is the UTC build date of the bundle in `yymmddHHMM`
 format.
 
 * **Bump `MAJOR` if**: you are introducing breaking changes in the config schema
