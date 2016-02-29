@@ -180,6 +180,9 @@ operation log of the extension at the
 ### Changelog
 
 ```
+# 1.1.1602270800 (2016-02-28)
+- Fix: extension crash while collecting “yum install” output.
+
 # 1.1.1601140348 (2016-01-13)
 - Fix: eliminate redundant restarts of docker-engine on CoreOS if configuration
   is not changed.
