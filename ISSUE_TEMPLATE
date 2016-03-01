@@ -1,0 +1,5 @@
+Please take a look at the following log files for issues you are
+encountering and provide them in the issue details.
+
+- /var/log/azure-docker-extension-enable.log
+- /var/log/waagent.log
