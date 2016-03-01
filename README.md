@@ -173,9 +173,14 @@ is expected to fail on unsupported distributions.
 ### Debugging
 
 After adding the extension, it can usually take a few minutes for the extension
-to make it to the VM, install docker and do other things. You can see the
-operation log of the extension at the
-`/var/log/azure/<<extension version>>/docker-extension.log` file.
+to make it to the VM, install docker and do other things. 
+
+You can find the extension and Azure Linux agent logs here:
+* `/var/log/azure-docker-extension-enable.log`
+* `/var/log/waagent.log`
+* `/var/log/azure/Microsoft.Azure.Extensions.DockerExtension/**/docker-extension.log`
+
+If you are going to open an issue, please provide these log files.
 
 ### Changelog
 
