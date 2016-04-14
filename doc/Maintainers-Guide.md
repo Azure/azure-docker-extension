@@ -37,7 +37,7 @@ Publishing takes 3 steps and you will use the `azure-extensions-cli` program.
 
     export SUBSCRIPTION_ID=[...]
     export SUBSCRIPTION_CERT=[...].pem
-    azure-extensions-cli --manifest [path-to-manifest]
+    azure-extensions-cli new-extension-version --manifest [path-to-manifest]
 
 Then check its replication status using:
  
