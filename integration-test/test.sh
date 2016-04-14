@@ -6,6 +6,10 @@ IFS=$'\n\t'
 readonly TEST_SUBS="c3dfd792-49a4-4b06-80fc-6fc6d06c4742"
 readonly TEST_REGION="Brazil South"
 
+# make docker-cli send a lower version number so that we can
+# test old images (if client>newer, docker engine rejects the request)
+readonly DOCKER_REMOTE_API_VERSION=1.20
+
 # supported images (add/update them as new major versions come out)
 readonly DISTROS=(
 	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-835.9.0" \
@@ -77,6 +81,8 @@ intro() {
 	4. Wait until the VMs reach the goal state provided by $EXTENSION_NAME. 
 	5. Clean up VMs.
 
+	Using test subscription: $TEST_SUBS
+	Staging region to deploy VMs: $TEST_REGION
 
 	EOF
 }
@@ -84,6 +90,15 @@ intro() {
 set_subs() {
 	log "Setting subscription to $TEST_SUBS..."
 	azure account set $TEST_SUBS 1>/dev/null
+}
+
+try_cli() {
+	log "Validating Azure CLI credentials"
+	(
+		set -x
+		azure network application-gateway list
+	)
+	log "Azure CLI is authenticated"
 }
 
 ssh_key() {
@@ -201,6 +216,11 @@ docker_cert_path() {
 	echo "$SCRIPT_DIR/$DOCKER_CERTS_DIR"
 }
 
+docker_cli_env() {
+	local fqdn=$1
+	echo "DOCKER_CERT_PATH=\"$(docker_cert_path)\" DOCKER_HOST=\"$(docker_addr $fqdn)\" DOCKER_API_VERSION=$DOCKER_REMOTE_API_VERSION"
+}
+
 wait_for_docker() {
 	local host=$1
 	local addr=$(docker_addr $host)
@@ -208,7 +228,7 @@ wait_for_docker() {
 	local docker_certs="$(docker_cert_path)"
 
 	# Validate "docker info" works
-	local docker_env="DOCKER_CERT_PATH=\"$docker_certs\" DOCKER_HOST=\"$addr\""
+	local docker_env=$(docker_cli_env $host)
 	local docker_cmd="docker --tls info"
 	log "Waiting for Docker engine on $addr..."
 	echo "+ $docker_env $docker_cmd"
@@ -270,7 +290,7 @@ validate_extension_version() {
 
 	# Find out what version of extension is installed by running
 	# a Docker container with /var/lib/waagent mounted
-	local docker_env="DOCKER_CERT_PATH=\"$(docker_cert_path)\" DOCKER_HOST=\"$(docker_addr $fqdn)\""
+	local docker_env=$(docker_cli_env $fqdn)
 	local docker_cmd="docker --tls run --rm -i -v /var/lib/waagent:/agent busybox ls -1 /agent | grep '^$prefix'"
 
 	echo "+ $docker_env $docker_cmd"
@@ -289,7 +309,7 @@ validate_extension_version() {
 
 validate_secret_env() {
 	local fqdn=$1
-	local docker_env="DOCKER_CERT_PATH=\"$(docker_cert_path)\" DOCKER_HOST=\"$(docker_addr $fqdn)\""
+	local docker_env=$(docker_cli_env $fqdn)
 	local docker_cmd="docker --tls run --rm -i -v /test:/test busybox cat /test/env.txt"
 
 	log "Validating protected environment variable."
@@ -355,6 +375,7 @@ intro
 read_version
 check_asm
 set_subs
+try_cli
 
 delete_vms
 create_vms
