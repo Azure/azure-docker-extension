@@ -161,7 +161,7 @@ You can find various usages of this at the following gallery templates:
 
 ### Supported Linux Distributions
 
-- CoreOS
+- CoreOS 899 and higher
 - Ubuntu 13 and higher
 - CentOS 7.1 and higher
 - Red Hat Enterprise Linux (RHEL) 7.1 and higher
@@ -185,6 +185,10 @@ If you are going to open an issue, please provide these log files.
 ### Changelog
 
 ```
+# 1.1.1604142300 (2016-04-14)
+- Fix: docker v1.11 release has broken docker-compose 1.5 from pulling private images.
+  Upgrading to docker-compose 1.6.2 and dropping support for docker-engine <1.9.1 (gh#80)
+
 # 1.1.1602270800 (2016-02-28)
 - Fix: extension crash while collecting “yum install” output.
 
