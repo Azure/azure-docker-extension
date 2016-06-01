@@ -15,7 +15,8 @@ Docker VM extension can:
 - Install latest stable version of Docker Engine on your Linux VM
 - If provided, configures Docker daemon to listen on specified port, with given
   certs
-- If provided, launches the given containers using docker-compose
+- Launches a set of containers using `docker-compose` (intended for running a
+  static set of containers for monitoring, security etc.)
 
 # User Guide
 
@@ -33,6 +34,10 @@ this:
 * `compose`: (optional, JSON object) the compose.yml file to be used, [converted
   to JSON][yaml-to-json]. If you are considering to embed secrets as environment
   variables in this section, please see the `"environment"` key described below.
+  **This feature is not intended for managing a dynamic set of containers**, it
+  is intended for starting a static set of bootstrap containers for monitoring,
+  security or orchestrator agents. **Please do not manage your containers through
+  this feature.** 
 
 A minimal simple configuration would be an empty json object (`{}`) or a more
 advanced one like this:
