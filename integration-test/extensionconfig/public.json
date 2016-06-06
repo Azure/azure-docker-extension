@@ -7,10 +7,10 @@
 			]
 	},
 	"compose" : {
-		"env" : {
+		"envdump" : {
 			"image" : "busybox",
 			"volumes": ["/test:/test"],
-			"environment": ["SECRET_KEY"],
+			"environment": ["COMPOSE_PROJECT_NAME", "SECRET_KEY"],
 			"command": "/bin/sh -c 'env > /test/env.txt'"
 		},
 		"web" : { 
@@ -18,5 +18,8 @@
 			"restart" : "always",
 			"ports" : ["80:80"]
 		}
+	},
+	"compose-environment": {
+		"COMPOSE_PROJECT_NAME": "test"
 	}
 }

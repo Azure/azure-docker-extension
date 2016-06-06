@@ -221,7 +221,7 @@ func composeBinPath(d driver.DistroDriver) string {
 
 // composeUp converts given json to yaml, saves to a file on the host and
 // uses `docker-compose up -d` to create the containers.
-func composeUp(d driver.DistroDriver, json map[string]interface{}, env map[string]string) error {
+func composeUp(d driver.DistroDriver, json map[string]interface{}, publicEnv, protectedEnv map[string]string) error {
 	if len(json) == 0 {
 		log.Println("docker-compose config not specified, noop")
 		return nil
@@ -242,22 +242,38 @@ func composeUp(d driver.DistroDriver, json map[string]interface{}, env map[strin
 		return fmt.Errorf("error writing %s: %v", ymlPath, err)
 	}
 
+	if publicEnv == nil {
+		publicEnv = make(map[string]string)
+	}
+
 	// set timeout for docker-compose -> docker-engine interactions.
 	// When downloading large images, docker-compose intermittently times out
-	// (gh#docker/compose/issues/2186).
-	os.Setenv("COMPOSE_HTTP_TIMEOUT", fmt.Sprintf("%d", composeTimeoutSecs))  // versions <= 1.4.2
-	os.Setenv("DOCKER_CLIENT_TIMEOUT", fmt.Sprintf("%d", composeTimeoutSecs)) // version  >= 1.5.0
-	defer os.Unsetenv("COMPOSE_HTTP_TIMEOUT")
-	defer os.Unsetenv("DOCKER_CLIENT_TIMEOUT")
+	// (gh#docker/compose/issues/2186) (gh#Azure/azure-docker-extension/issues/87).
+	if _, ok := publicEnv["COMPOSE_HTTP_TIMEOUT"]; !ok {
+		publicEnv["COMPOSE_HTTP_TIMEOUT"] = fmt.Sprintf("%d", composeTimeoutSecs)
+	}
 
-	// set protected environment variables to be used in docker-compose
-	for k, v := range env {
-		log.Printf("Setting protected environment variable '%s'.", k)
+	// provide a consistent default project name for docker-compose. this is to prevent
+	// inconsistencies that may occur when we change where docker-compose.yml lives.
+	if _, ok := publicEnv["COMPOSE_PROJECT_NAME"]; !ok {
+		publicEnv["COMPOSE_PROJECT_NAME"] = composeProject
+	}
+
+	// set public environment variables to be used in docker-compose
+	for k, v := range publicEnv {
+		log.Printf("Setting docker-compose environment variable %q=%q.", k, v)
 		os.Setenv(k, v)
 		defer os.Unsetenv(k)
 	}
 
-	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, composeBinPath(d), "-p", composeProject, "-f", ymlPath, "up", "-d")
+	// set protected environment variables to be used in docker-compose
+	for k, v := range protectedEnv {
+		log.Printf("Setting protected docker-compose environment variable %q.", k)
+		os.Setenv(k, v)
+		defer os.Unsetenv(k)
+	}
+
+	return executil.ExecPipeToFds(executil.Fds{Out: ioutil.Discard}, composeBinPath(d), "-f", ymlPath, "up", "-d")
 }
 
 // installDockerCerts saves the configured certs to the specified dir
