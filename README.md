@@ -31,7 +31,7 @@ this:
   * `port`: (optional, string) the port Docker listens on
   * `options`: (optional, string array) command line options passed to the
     Docker engine
-* `compose`: (optional, JSON object) the compose.yml file to be used, [converted
+* `compose`: (optional, JSON object) the `docker-compose.yml` file to be used, [converted
   to JSON][yaml-to-json]. If you are considering to embed secrets as environment
   variables in this section, please see the `"environment"` key described below.
   **This feature is not intended for managing a dynamic set of containers**, it
