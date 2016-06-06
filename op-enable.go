@@ -139,8 +139,8 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 
 	// Compose Up
 	log.Printf("++ compose up")
-	if err := composeUp(d, settings.ComposeJson, settings.Environment); err != nil {
-		return fmt.Errorf("'compose up' failed: %v", err)
+	if err := composeUp(d, settings.ComposeJson, settings.ComposeEnv, settings.ComposeProtectedEnv); err != nil {
+		return fmt.Errorf("'docker-compose up' failed: %v. Check logs at %s.", err, filepath.Join(he.HandlerEnvironment.LogFolder, LogFilename))
 	}
 	log.Printf("-- compose up")
 	return nil
