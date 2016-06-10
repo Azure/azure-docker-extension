@@ -199,7 +199,7 @@ If you are going to open an issue, please provide these log files.
 ```
 # 1.1.1606092330 (2016-06-09)
 - Introduced “compose-environment” public configuration to pass additional unencrypted
-  environment variables to docker-compose for fine tuning. (gh#87, gh#89)
+  environment variables to docker-compose for fine tuning. (gh#87, gh#85)
 - Better error messages for docker-compose failures indicating the log path. (gh#86)
 
 # 1.1.1604142300 (2016-04-14)
