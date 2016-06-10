@@ -16,6 +16,7 @@ readonly DISTROS=(
 	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Alpha-970.1.0" \
 	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20151117-en-us-30GB" \
 	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-15_10-amd64-server-20160222-en-us-30GB" \
+	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20160516.1-en-us-30GB" \
 	"5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-71-20150731" \
 	)
 
