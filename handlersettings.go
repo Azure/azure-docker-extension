@@ -10,14 +10,15 @@ import (
 type publicSettings struct {
 	Docker      dockerEngineSettings   `json:"docker"`
 	ComposeJson map[string]interface{} `json:"compose"`
+	ComposeEnv  map[string]string      `json:"compose-environment"`
 }
 
 // protectedSettings is the type decoded and deserialized from protected
 // configuration section.
 type protectedSettings struct {
-	Certs       dockerCertSettings  `json:"certs"`
-	Login       dockerLoginSettings `json:"login"`
-	Environment map[string]string   `json:"environment"`
+	Certs               dockerCertSettings  `json:"certs"`
+	Login               dockerLoginSettings `json:"login"`
+	ComposeProtectedEnv map[string]string   `json:"environment"`
 }
 
 type dockerEngineSettings struct {

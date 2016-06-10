@@ -38,6 +38,9 @@ this:
   is intended for starting a static set of bootstrap containers for monitoring,
   security or orchestrator agents. **Please do not manage your containers through
   this feature.** 
+* `compose-environment` (optional, JSON object) [Environment variables for docker-compose][compose-env].
+
+[compose-env]: https://docs.docker.com/compose/reference/envvars/
 
 A minimal simple configuration would be an empty json object (`{}`) or a more
 advanced one like this:
@@ -53,10 +56,14 @@ advanced one like this:
 			"image" : "memcached",
 			"ports" : ["11211:11211"]
 		},
-		"blog": {
+		"web": {
 			"image": "ghost",
 			"ports": ["80:2368"]
 		}
+	},
+	"compose-environment": {
+		"COMPOSE_PROJECT_NAME": "blog",
+		"COMPOSE_HTTP_TIMEOUT": "600"
 	}
 }
 ```
@@ -190,6 +197,11 @@ If you are going to open an issue, please provide these log files.
 ### Changelog
 
 ```
+# 1.1.1606092330 (2016-06-09)
+- Introduced “compose-environment” public configuration to pass additional unencrypted
+  environment variables to docker-compose for fine tuning. (gh#87, gh#89)
+- Better error messages for docker-compose failures indicating the log path. (gh#86)
+
 # 1.1.1604142300 (2016-04-14)
 - Fix: docker v1.11 release has broken docker-compose 1.5 from pulling private images.
   Upgrading to docker-compose 1.6.2 and dropping support for docker-engine <1.9.1 (gh#80)

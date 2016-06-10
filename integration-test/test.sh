@@ -29,6 +29,8 @@ readonly EXTENSION_NAME=DockerExtension
 readonly EXTENSION_PUBLISHER=Microsoft.Azure.Extensions
 readonly EXTENSION_CONFIG=extensionconfig/public.json
 readonly EXTENSION_CONFIG_PROT=extensionconfig/protected.json
+
+# Global variables
 expected_extension_version=
 
 ### Functions
@@ -191,13 +193,21 @@ delete_vms() {
 	log "Cleaned up all test VMs."
 }
 
-add_extension_to_vms() {
-	log "Adding extension to VMs in parallel..."
+parse_minor_version() {
+	# matches to major.minor in major.minor[.patch[.hotfix]]
+	local v=$1
+	echo $v | grep -Po "\d+\.[\d]+" | head -1
+}
 
+add_extension_to_vms() {
 	local pub_config="$SCRIPT_DIR/$EXTENSION_CONFIG"
 	local prot_config="$SCRIPT_DIR/$EXTENSION_CONFIG_PROT"
 
-	local cmd="azure vm extension set {} $EXTENSION_NAME $EXTENSION_PUBLISHER '*' --public-config-path '$pub_config' --private-config-path '$prot_config'"
+	# To use internal version, MAJOR.MINOR must be specified; not '*' or 'MAJOR.*'
+	local minor_version=$(parse_minor_version $expected_extension_ver)
+	log "Adding extension v${minor_version} to VMs in parallel..."
+
+	local cmd="azure vm extension set {} $EXTENSION_NAME $EXTENSION_PUBLISHER '$minor_version' --public-config-path '$pub_config' --private-config-path '$prot_config'"
 	local vms=$(get_vms)
 
 	# Print commands to be executed, then execute them
@@ -307,23 +317,26 @@ validate_extension_version() {
 	log "VM has the correct version of $EXTENSION_NAME."
 }
 
-validate_secret_env() {
+validate_env() {
 	local fqdn=$1
+	local env_key=$2
+	local env_val=$3
+
 	local docker_env=$(docker_cli_env $fqdn)
 	local docker_cmd="docker --tls run --rm -i -v /test:/test busybox cat /test/env.txt"
 
-	log "Validating protected environment variable."
+	log "Validating environment variable '$env_key'."
 	echo "+ $docker_env $docker_cmd"
 	local i=0
 	while true; do
 		set +e
 		local output="$(eval $docker_env $docker_cmd 2>&1)"
 		set -e
-		if [[ "$output" == *"SECRET_KEY=SECRET_VALUE"* ]]; then
-			log "Secret variable found in environment."
+		if [[ "$output" == *"$env_key=$env_val"* ]]; then
+			log "Environment variable $env_val found in environment."
 			return
 		elif [[ $i -gt 5 ]]; then
-			log "Environment file served does not contain protected env key 'SECRET_KEY':"
+			log "Environment file served does not contain env key: '$env_val':"
 			echo "$output"
 			exit 1
 		fi
@@ -331,7 +344,28 @@ validate_secret_env() {
 		print '.'
 		sleep 5
 	done
+}
 
+get_container_names() {
+	local fqdn=$1
+
+	local docker_env=$(docker_cli_env $fqdn)
+	local docker_cmd="docker --tls ps -a --format '{{.Names}}'"
+
+	echo "$(eval $docker_env $docker_cmd 2>&1)"
+}
+
+validate_container_prefixes() {
+	local fqdn=$1
+	local prefix=$2
+
+	local out=$(get_container_names $fqdn | grep -v "^${prefix}_")
+	if [[ -n "$out" ]]; then
+		log "DOCKER_COMPOSE_PROJECT setting is not effective."
+		log "   Found containers without preconfigured prefix: $out"
+		exit 1
+	fi
+	log "docker-compose container prefixes are correct."
 }
 
 vm_ssh_cmd() {
@@ -348,7 +382,9 @@ validate_vm() {
 	wait_for_docker $fqdn
 	validate_extension_version $fqdn
 	wait_for_container $fqdn
-	validate_secret_env $fqdn
+	validate_env $fqdn "SECRET_KEY" "SECRET_VALUE"
+	validate_env $fqdn "COMPOSE_PROJECT_NAME" "test"
+	validate_container_prefixes $fqdn "test"
 
 	log "VM is O.K.: $name."
 	echo
