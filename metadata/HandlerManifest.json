@@ -1,5 +1,4 @@
 [{
-  "name": "DockerExtension",
   "version": 1.0,
   "handlerManifest": {
     "installCommand":   "bin/docker-extension install",
