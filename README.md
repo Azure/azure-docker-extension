@@ -297,3 +297,6 @@ If you are going to open an issue, please provide these log files.
 
 [yaml-to-json]: http://yamltojson.com/
 [azure-cli]: https://azure.microsoft.com/en-us/documentation/articles/xplat-cli/
+
+-----
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
