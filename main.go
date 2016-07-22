@@ -14,9 +14,9 @@ import (
 	"github.com/Azure/azure-docker-extension/pkg/driver"
 	"github.com/Azure/azure-docker-extension/pkg/executil"
 	"github.com/Azure/azure-docker-extension/pkg/seqnumfile"
-	"github.com/Azure/azure-docker-extension/pkg/status"
 	"github.com/Azure/azure-docker-extension/pkg/util"
 	"github.com/Azure/azure-docker-extension/pkg/vmextension"
+	"github.com/Azure/azure-docker-extension/pkg/vmextension/status"
 )
 
 const (
