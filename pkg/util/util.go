@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -34,15 +33,6 @@ func ParseINI(s string) (map[string]string, error) {
 		return nil, fmt.Errorf("Could not scan config file: %v", err)
 	}
 	return m, nil
-}
-
-// ScriptDir returns the absolute path of the running process.
-func ScriptDir() (string, error) {
-	p, err := filepath.Abs(os.Args[0])
-	if err != nil {
-		return "", err
-	}
-	return filepath.Dir(p), nil
 }
 
 // GetAzureUser returns the username provided at VM provisioning time to Azure.
