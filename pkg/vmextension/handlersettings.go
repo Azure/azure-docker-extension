@@ -129,7 +129,7 @@ func unmarshalProtectedSettings(configFolder string, hs handlerSettings, v inter
 	cmd.Stderr = &bErr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("decrypting protected settings failed: error=%v stderr=%v", err, bErr.Bytes())
+		return fmt.Errorf("decrypting protected settings failed: error=%v stderr=%s", err, bErr.Bytes())
 	}
 
 	// decrypted: json object for protected settings
