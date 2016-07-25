@@ -21,24 +21,3 @@ func Test_parseHandlerSettingsFile_Good(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-func Test_UnmarshalHandlerSettings(t *testing.T) {
-	configFolder := "../../testdata/Extension/config"
-	public := struct {
-		Port string `json:"dockerport"`
-	}{}
-	protected := struct {
-		CA string `json:"ca"`
-	}{}
-	err := UnmarshalHandlerSettings(configFolder, &public, &protected)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if public.Port == "" {
-		t.Fatal("failed to parse public settings")
-	}
-	if protected.CA == "" {
-		t.Fatal("failed to parse protected settings")
-	}
-}
