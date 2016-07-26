@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	composeUrl         = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
+	composeUrlGlobal   = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
+	composeUrlMooncake = "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64"
 	composeBin         = "docker-compose"
 	composeTimeoutSecs = 600
 
@@ -34,6 +35,10 @@ const (
 	dockerCaCert  = "ca.pem"
 	dockerSrvCert = "cert.pem"
 	dockerSrvKey  = "key.pem"
+
+	dockerUrlGlobal       = "https://get.docker.com/"
+	dockerUrlMooncake     = "http://mirror.azure.cn/repo/install-docker-engine.sh"
+	azureEndpointMooncake = "core.chinacloudapi.cn"
 )
 
 func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
@@ -58,10 +63,16 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		var (
 			nRetries      = 6
 			retryInterval = time.Minute * 1
-		)
+			dockerUrl = dockerUrlGlobal
+                )
+
+		// For Mooncake, use the mirror in China to install docker
+		if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
+			dockerUrl = dockerUrlMooncake
+		}
 
 		for nRetries > 0 {
-			if err := d.InstallDocker(); err != nil {
+			if err := d.InstallDocker(dockerUrl); err != nil {
 				nRetries--
 				if nRetries == 0 {
 					return err
@@ -166,6 +177,12 @@ func installCompose(path string) error {
 		if err := os.MkdirAll(dir, 755); err != nil {
 			return err
 		}
+	}
+
+	composeUrl := composeUrlGlobal
+	// For Mooncake, use the mirror in China to install docker compose
+	if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
+		composeUrl = composeUrlMooncake
 	}
 
 	log.Printf("Downloading compose from %s", composeUrl)

@@ -9,7 +9,7 @@ import (
 )
 
 type DistroDriver interface {
-	InstallDocker() error
+	InstallDocker(url string) error
 	DockerComposeDir() string
 
 	BaseOpts() []string
