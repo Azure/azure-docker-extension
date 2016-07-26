@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -60,20 +59,23 @@ func (r StatusReport) marshal() ([]byte, error) {
 // sequence number. The operation consists of writing to a temporary file in the
 // same folder and moving it to the final destination for atomicity.
 func (r StatusReport) Save(statusFolder string, seqNum int) error {
-	suffix := fmt.Sprintf(".tmp.%d", rand.New(rand.NewSource(time.Now().UnixNano())).Int63())
 	fn := fmt.Sprintf("%d.status", seqNum)
 	path := filepath.Join(statusFolder, fn)
-	tmpPath := filepath.Join(statusFolder, fn+suffix)
+	tmpFile, err := ioutil.TempFile(statusFolder, fn)
+	if err != nil {
+		return fmt.Errorf("status: failed to create temporary file: %v", err)
+	}
+	tmpFile.Close()
 
 	b, err := r.marshal()
 	if err != nil {
 		return fmt.Errorf("status: failed to marshal into json: %v", err)
 	}
-	if err := ioutil.WriteFile(tmpPath, b, 0644); err != nil {
-		return fmt.Errorf("status: failed to path=%s error=%v", tmpPath, err)
+	if err := ioutil.WriteFile(tmpFile.Name(), b, 0644); err != nil {
+		return fmt.Errorf("status: failed to path=%s error=%v", tmpFile.Name(), err)
 	}
 
-	if err := os.Rename(tmpPath, path); err != nil {
+	if err := os.Rename(tmpFile.Name(), path); err != nil {
 		return fmt.Errorf("status: failed to move to path=%s error=%v", path, err)
 	}
 	return nil
