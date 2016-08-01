@@ -64,7 +64,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 			nRetries      = 6
 			retryInterval = time.Minute * 1
 			dockerUrl = dockerUrlGlobal
-                )
+		)
 
 		// For Mooncake, use the mirror in China to install docker
 		if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
