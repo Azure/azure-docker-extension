@@ -37,6 +37,9 @@ const (
 	dockerSrvKey  = "key.pem"
 
 	dockerUrlGlobal       = "https://get.docker.com/"
+	// This script is the same as https://get.docker.com, except
+	// 1. apt_url and yum_url points to the mirror in China
+	// 2. fix an issue in detecting distro versions
 	dockerUrlMooncake     = "http://mirror.azure.cn/repo/install-docker-engine.sh"
 	azureEndpointMooncake = "core.chinacloudapi.cn"
 )
@@ -69,6 +72,8 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		// For Mooncake, use the mirror in China to install docker
 		if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
 			dockerUrl = dockerUrlMooncake
+		} else if err != nil {
+			log.Printf("error detecting endpoint: %v. use default docker url.", err)
 		}
 
 		for nRetries > 0 {
@@ -183,6 +188,8 @@ func installCompose(path string) error {
 	// For Mooncake, use the mirror in China to install docker compose
 	if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
 		composeUrl = composeUrlMooncake
+	} else if err != nil {
+		log.Printf("error detecting endpoint: %v. use default docker compose url.", err)
 	}
 
 	log.Printf("Downloading compose from %s", composeUrl)
