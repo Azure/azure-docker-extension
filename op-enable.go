@@ -23,7 +23,7 @@ import (
 
 const (
 	composeUrlGlobal   = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
-	composeUrlMooncake = "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64"
+	composeUrlChina = "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64"
 	composeBin         = "docker-compose"
 	composeTimeoutSecs = 600
 
@@ -40,8 +40,8 @@ const (
 	// This script is the same as https://get.docker.com, except
 	// 1. apt_url and yum_url points to the mirror in China
 	// 2. fix an issue in detecting distro versions
-	dockerUrlMooncake     = "http://mirror.azure.cn/repo/install-docker-engine.sh"
-	azureEndpointMooncake = "core.chinacloudapi.cn"
+	dockerUrlChina     = "http://mirror.azure.cn/repo/install-docker-engine.sh"
+	azureEndpointChina = "core.chinacloudapi.cn"
 )
 
 func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
@@ -69,9 +69,9 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 			dockerUrl = dockerUrlGlobal
 		)
 
-		// For Mooncake, use the mirror in China to install docker
-		if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
-			dockerUrl = dockerUrlMooncake
+		// For AzureChina, use the mirror in China to install docker
+		if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointChina {
+			dockerUrl = dockerUrlChina
 		} else if err != nil {
 			log.Printf("error detecting endpoint: %v. use default docker url.", err)
 		}
@@ -185,9 +185,9 @@ func installCompose(path string) error {
 	}
 
 	composeUrl := composeUrlGlobal
-	// For Mooncake, use the mirror in China to install docker compose
-	if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointMooncake {
-		composeUrl = composeUrlMooncake
+	// For AzureChina, use the mirror in China to install docker compose
+	if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointChina {
+		composeUrl = composeUrlChina
 	} else if err != nil {
 		log.Printf("error detecting endpoint: %v. use default docker compose url.", err)
 	}
