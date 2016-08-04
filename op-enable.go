@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	composeUrlGlobal   = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
-	composeUrlChina = "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64"
 	composeBin         = "docker-compose"
 	composeTimeoutSecs = 600
 
@@ -35,16 +33,16 @@ const (
 	dockerCaCert  = "ca.pem"
 	dockerSrvCert = "cert.pem"
 	dockerSrvKey  = "key.pem"
-
-	dockerUrlGlobal       = "https://get.docker.com/"
-	// This script is the same as https://get.docker.com, except
-	// 1. apt_url and yum_url points to the mirror in China
-	// 2. fix an issue in detecting distro versions
-	dockerUrlChina     = "http://mirror.azure.cn/repo/install-docker-engine.sh"
-	azureEndpointChina = "core.chinacloudapi.cn"
 )
 
 func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
+	settings, err := parseSettings(he.HandlerEnvironment.ConfigFolder)
+	if err != nil {
+		return err
+	}
+
+	dockerUrl, composeUrl := getDockerUrls(settings.AzureEnv)
+
 	// Install docker daemon
 	log.Printf("++ install docker")
 	if _, err := exec.LookPath("docker"); err == nil {
@@ -66,15 +64,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		var (
 			nRetries      = 6
 			retryInterval = time.Minute * 1
-			dockerUrl = dockerUrlGlobal
 		)
-
-		// For AzureChina, use the mirror in China to install docker
-		if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointChina {
-			dockerUrl = dockerUrlChina
-		} else if err != nil {
-			log.Printf("error detecting endpoint: %v. use default docker url.", err)
-		}
 
 		for nRetries > 0 {
 			if err := d.InstallDocker(dockerUrl); err != nil {
@@ -94,7 +84,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 
 	// Install docker-compose
 	log.Printf("++ install docker-compose")
-	if err := installCompose(composeBinPath(d)); err != nil {
+	if err := installCompose(composeBinPath(d), composeUrl); err != nil {
 		return fmt.Errorf("error installing docker-compose: %v", err)
 	}
 	log.Printf("-- install docker-compose")
@@ -110,11 +100,6 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		return err
 	}
 	log.Printf("-- add user to docker group")
-
-	settings, err := parseSettings(he.HandlerEnvironment.ConfigFolder)
-	if err != nil {
-		return err
-	}
 
 	// Install docker remote access certs
 	log.Printf("++ setup docker certs")
@@ -164,7 +149,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 
 // installCompose download docker-compose and saves to the specified path if it
 // is not already installed.
-func installCompose(path string) error {
+func installCompose(path string, composeUrl string) error {
 	// Check if already installed at path.
 	if ok, err := util.PathExists(path); err != nil {
 		return err
@@ -182,14 +167,6 @@ func installCompose(path string) error {
 		if err := os.MkdirAll(dir, 755); err != nil {
 			return err
 		}
-	}
-
-	composeUrl := composeUrlGlobal
-	// For AzureChina, use the mirror in China to install docker compose
-	if endpoint, err := util.GetAzureEndpoint(); err == nil && endpoint == azureEndpointChina {
-		composeUrl = composeUrlChina
-	} else if err != nil {
-		log.Printf("error detecting endpoint: %v. use default docker compose url.", err)
 	}
 
 	log.Printf("Downloading compose from %s", composeUrl)
@@ -379,4 +356,25 @@ func getArgs(s DockerHandlerSettings, dd driver.DistroDriver) string {
 	}
 
 	return strings.Join(args, " ")
+}
+
+
+func getDockerUrls(env string) (string, string) {
+	urlMap := map[string]map[string]string{
+		"china": map[string]string{
+			// This script is the same as https://get.docker.com, except
+			// 1. apt_url and yum_url points to the mirror in China
+			// 2. fix an issue in detecting distro versions
+			"docker" : "http://mirror.azure.cn/repo/install-docker-engine.sh", 
+			"compose": "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64",
+		},
+		"global": map[string]string{
+			"docker" : "https://get.docker.com/",
+			"compose": "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64",
+		},
+	}
+	if value, ok := urlMap[strings.ToLower(env)]; ok {
+		return value["docker"], value["compose"]
+	}
+	return urlMap["global"]["docker"], urlMap["global"]["docker"]
 }

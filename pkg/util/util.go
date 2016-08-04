@@ -62,25 +62,6 @@ func GetAzureUser() (string, error) {
 	return v.UserName, nil
 }
 
-// GetAzureEndpoint returns the Azure endpoint.
-func GetAzureEndpoint() (string, error) {
-	b, err := ioutil.ReadFile(OvfEnvPath)
-	if err != nil {
-		return "", err
-	}
-
-	var v struct {
-		KmsServerHostname string   `xml:"PlatformSettingsSection>PlatformSettings>KmsServerHostname"`
-	}
-	if err := xml.Unmarshal(b, &v); err != nil {
-		return "", err
-	}
-	if s := strings.SplitN(v.KmsServerHostname, ".", 2); len(s) > 1 {
-		return s[1], nil
-	}
-	return "", nil
-}
-
 // PathExists checks if a path is a directory or file on the
 // filesystem.
 func PathExists(path string) (bool, error) {
@@ -93,3 +74,4 @@ func PathExists(path string) (bool, error) {
 	}
 	return false, fmt.Errorf("util: error checking path %s: %v", path, err)
 }
+
