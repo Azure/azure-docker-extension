@@ -74,4 +74,3 @@ func PathExists(path string) (bool, error) {
 	}
 	return false, fmt.Errorf("util: error checking path %s: %v", path, err)
 }
-
