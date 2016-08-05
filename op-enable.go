@@ -360,19 +360,19 @@ func getArgs(s DockerHandlerSettings, dd driver.DistroDriver) string {
 
 
 func getDockerUrls(env string) (string, string) {
-	urlMap := map[string]map[string]string{
-		"china": map[string]string{
+	urlMap := map[string]struct{dockerUrl, composeUrl string}{
+		"AzureChinaCloud": {
 			// This script is synced with https://get.docker.com daily, with the change that apt_url and yum_url point to the mirror in China
-			"docker" : "http://mirror.azure.cn/repo/install-docker-engine.sh",
-			"compose": "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64",
+			"http://mirror.azure.cn/repo/install-docker-engine.sh",
+			"http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64",
 		},
-		"global": map[string]string{
-			"docker" : "https://get.docker.com/",
-			"compose": "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64",
+		"AzureCloud": {
+			"https://get.docker.com/",
+			"https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64",
 		},
 	}
-	if value, ok := urlMap[strings.ToLower(env)]; ok {
-		return value["docker"], value["compose"]
+	if value, ok := urlMap[env]; ok {
+		return value.dockerUrl, value.composeUrl
 	}
-	return urlMap["global"]["docker"], urlMap["global"]["docker"]
+	return urlMap["AzureCloud"].dockerUrl, urlMap["AzureCloud"].composeUrl
 }

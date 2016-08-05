@@ -39,10 +39,11 @@ this:
   security or orchestrator agents. **Please do not manage your containers through
   this feature.** 
 * `compose-environment` (optional, JSON object) [Environment variables for docker-compose][compose-env].
-* `azure-environment` (optional, string) Azure environment. Supported values: "global", "china". 
-  Default is "global".
+* `azure-environment` (optional, string) Azure environment. Supported values: "AzureCloud", "AzureChinaCloud". 
+  Default is "AzureCloud". [Azure Regions][azure-env]
 
 [compose-env]: https://docs.docker.com/compose/reference/envvars/
+[azure-env]: https://azure.microsoft.com/en-us/regions/
 
 A minimal simple configuration would be an empty json object (`{}`) or a more
 advanced one like this:
@@ -66,7 +67,8 @@ advanced one like this:
 	"compose-environment": {
 		"COMPOSE_PROJECT_NAME": "blog",
 		"COMPOSE_HTTP_TIMEOUT": "600"
-	}
+	},
+	"azure-environment": "AzureChinaCloud"
 }
 ```
 
