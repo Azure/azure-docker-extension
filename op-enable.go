@@ -362,10 +362,8 @@ func getArgs(s DockerHandlerSettings, dd driver.DistroDriver) string {
 func getDockerUrls(env string) (string, string) {
 	urlMap := map[string]map[string]string{
 		"china": map[string]string{
-			// This script is the same as https://get.docker.com, except
-			// 1. apt_url and yum_url points to the mirror in China
-			// 2. fix an issue in detecting distro versions
-			"docker" : "http://mirror.azure.cn/repo/install-docker-engine.sh", 
+			// This script is synced with https://get.docker.com daily, with the change that apt_url and yum_url point to the mirror in China
+			"docker" : "http://mirror.azure.cn/repo/install-docker-engine.sh",
 			"compose": "http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64",
 		},
 		"global": map[string]string{
