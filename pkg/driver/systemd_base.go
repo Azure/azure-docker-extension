@@ -33,5 +33,5 @@ func (u systemdUnitOverwriteDriver) UpdateDockerArgs(args string) (bool, error) 
 }
 
 func (u systemdUnitOverwriteDriver) BaseOpts() []string {
-	return []string{"daemon", "-H=fd://"}
+	return []string{"-H=fd://"}
 }
