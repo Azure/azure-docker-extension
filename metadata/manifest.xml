@@ -6,7 +6,7 @@
   <ProviderNameSpace>Microsoft.Azure.Extensions</ProviderNameSpace>
   <Type>DockerExtension</Type>
   <Version>1.2.0</Version>
-  <Label>Microsoft Azure Custom Script Extension for Linux Virtual Machines</Label>
+  <Label>Docker Extension for Linux</Label>
   <HostingResources>VmRole</HostingResources>
   <MediaLink></MediaLink>
   <Description>Microsoft Azure Docker Extension for Linux Virtual Machines</Description>
