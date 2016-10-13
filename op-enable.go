@@ -22,6 +22,8 @@ import (
 )
 
 const (
+	composeUrlGlobal     = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
+	composeUrlAzureChina = "https://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64"
 	composeBin         = "docker-compose"
 	composeTimeoutSecs = 600
 
@@ -41,7 +43,18 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		return err
 	}
 
-	dockerUrl, composeUrl := getDockerUrls(settings.AzureEnv)
+	env := ""
+	composeUrl := ""
+	switch settings.AzureEnv {
+		case "AzureChinaCloud":
+			env = "AzureChinaCloud"
+			composeUrl = composeUrlAzureChina
+		case "AzureCloud", "":
+			env = "AzureCloud"
+			composeUrl = composeUrlGlobal
+		default:
+			return fmt.Errorf("invalid environment name: %s", settings.AzureEnv)
+	}
 
 	// Install docker daemon
 	log.Printf("++ install docker")
@@ -67,7 +80,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		)
 
 		for nRetries > 0 {
-			if err := d.InstallDocker(dockerUrl); err != nil {
+			if err := d.InstallDocker(env); err != nil {
 				nRetries--
 				if nRetries == 0 {
 					return err
@@ -147,9 +160,9 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 	return nil
 }
 
-// installCompose download docker-compose and saves to the specified path if it
+// installCompose download docker-compose from given url and saves to the specified path if it
 // is not already installed.
-func installCompose(path string, composeUrl string) error {
+func installCompose(path string, url string) error {
 	// Check if already installed at path.
 	if ok, err := util.PathExists(path); err != nil {
 		return err
@@ -169,13 +182,13 @@ func installCompose(path string, composeUrl string) error {
 		}
 	}
 
-	log.Printf("Downloading compose from %s", composeUrl)
-	resp, err := http.Get(composeUrl)
+	log.Printf("Downloading compose from %s", url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error downloading docker-compose: %v", err)
 	}
 	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("response status code from %s: %s", composeUrl, resp.Status)
+		return fmt.Errorf("response status code from %s: %s", url, resp.Status)
 	}
 	defer resp.Body.Close()
 
@@ -356,23 +369,4 @@ func getArgs(s DockerHandlerSettings, dd driver.DistroDriver) string {
 	}
 
 	return strings.Join(args, " ")
-}
-
-
-func getDockerUrls(env string) (string, string) {
-	urlMap := map[string]struct{dockerUrl, composeUrl string}{
-		"AzureChinaCloud": {
-			// This script is synced with https://get.docker.com daily, with the change that apt_url and yum_url point to the mirror in China
-			"http://mirror.azure.cn/repo/install-docker-engine.sh",
-			"http://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64",
-		},
-		"AzureCloud": {
-			"https://get.docker.com/",
-			"https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64",
-		},
-	}
-	if value, ok := urlMap[env]; ok {
-		return value.dockerUrl, value.composeUrl
-	}
-	return urlMap["AzureCloud"].dockerUrl, urlMap["AzureCloud"].composeUrl
 }

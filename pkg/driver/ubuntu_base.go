@@ -1,13 +1,21 @@
 package driver
 
 import (
+	"fmt"
 	"github.com/Azure/azure-docker-extension/pkg/executil"
 )
 
 type ubuntuBaseDriver struct{}
 
-func (u ubuntuBaseDriver) InstallDocker(url string) error {
-	return executil.ExecPipe("/bin/sh", "-c", "wget -qO- " + url + " | sh")
+func (u ubuntuBaseDriver) InstallDocker(azureEnv string) error {
+	switch azureEnv {
+		case "AzureCloud":
+			return executil.ExecPipe("/bin/sh", "-c", "wget -qO- https://get.docker.com/ | sh")
+		case "AzureChinaCloud":
+			return executil.ExecPipe("/bin/sh", "-c", "wget -qO- https://mirror.azure.cn/repo/install-docker-engine.sh | sh -s -- --mirror AzureChinaCloud")
+		default:
+			return fmt.Errorf("invalid environemnt name: %s", azureEnv)
+	}
 }
 
 func (u ubuntuBaseDriver) UninstallDocker() error {

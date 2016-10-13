@@ -9,7 +9,7 @@ import (
 )
 
 type DistroDriver interface {
-	InstallDocker(url string) error
+	InstallDocker(azureEnv string) error
 	DockerComposeDir() string
 
 	BaseOpts() []string
