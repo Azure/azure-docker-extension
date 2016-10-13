@@ -1,19 +1,27 @@
 # Maintainer’s Guide
 
-## Publishing a new version
+## Publishing a new version **manually**
 
-### 0. Prerequisites
+:warning: We use the internal EDP (Extension Deployment Pipeline) for releasing
+new versions.
+
+:warning: You are recommended to use EDP instead of the instructions here.
+
+### Prerequisites
 
 Make sure: 
 * you have access to the subscription that has publishing this extension.
 * you have a subscription management certificate in `.pem` format for that.
 * you installed `azure-extensions-cli` (and it `list-versions` command works)
 
+### 0. Bump the version number
+
+You need to update `metadata/manifest.xml` with the new version number that
+you should document in `README.md` Changelog section and push that change upstream.
+
 ### 1. Build and pack
 
-Make the code changes and run `make bundle`.
-
-This will compile and create the extension handler zip package to `bundle/` directory.
+Run `make bundle` to build an extension handler zip package in the `bundle/` directory.
 
 ### 2. Upload the package
 
@@ -24,8 +32,9 @@ format.
 * **Bump `MAJOR` if**: you are introducing breaking changes in the config schema
 * **Bump `MINOR` if**: you are adding new features (no need for hotfixes or minor nits)
 
-Run `metadata/make-manifest.sh` and save the XML output to a file (will be used later
-in publishing). Give it the version number.
+Run `azure-extensions-cli new-extension-manifest` with the values in
+`metadata/manifest.xml` to upload the package and create a manifest XML. Save the output
+of this program to a file (e.g. `/tmp/manifest.xml`).
 
 ### 3. Publish new version
 

@@ -201,6 +201,14 @@ If you are going to open an issue, please provide these log files.
 ### Changelog
 
 ```
+# 1.2.0 (2016-08-19)
+- Fix: On CentOS start dockerd as -H=unix:// instead of -H=fd:// as get.docker.com
+  install script has removed socket activation. (gh#104)
+- Prefer 'dockerd' in systemd unit files over 'docker daemon'. docker-engine has
+  migrated to this. This is why we are releasing a minor version for the extension
+  this time and not a hotfix so that existing VMs don’t automatically get this and
+  old versions of docker will not work with dockerd.
+
 # 1.1.1606092330 (2016-06-09)
 - Introduced “compose-environment” public configuration to pass additional unencrypted
   environment variables to docker-compose for fine tuning. (gh#87, gh#85)

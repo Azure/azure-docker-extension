@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	lg "log"
 	"os"
 	"os/user"
@@ -14,15 +13,12 @@ import (
 	"github.com/Azure/azure-docker-extension/pkg/driver"
 	"github.com/Azure/azure-docker-extension/pkg/executil"
 	"github.com/Azure/azure-docker-extension/pkg/seqnumfile"
-	"github.com/Azure/azure-docker-extension/pkg/status"
-	"github.com/Azure/azure-docker-extension/pkg/util"
 	"github.com/Azure/azure-docker-extension/pkg/vmextension"
+	"github.com/Azure/azure-docker-extension/pkg/vmextension/status"
 )
 
 const (
-	HandlerEnv      = "HandlerEnvironment.json"
-	HandlerManifest = "HandlerManifest.json"
-	LogFilename     = "docker-extension.log"
+	LogFilename = "docker-extension.log"
 )
 
 var (
@@ -35,7 +31,7 @@ var (
 func init() {
 	// Read extension handler environment
 	var err error
-	handlerEnv, err = parseHandlerEnv()
+	handlerEnv, err = vmextension.GetHandlerEnv()
 	if err != nil {
 		lg.Fatalf("ERROR: Cannot load handler environment: %v", err)
 	}
@@ -135,22 +131,6 @@ func main() {
 		log.Printf("WARNING: Error deleting seqnumfile: %v", err)
 	}
 	log.Printf("Cleaned up .seqnum file.")
-}
-
-// parseHandlerEnv reads extension handler configuration from HandlerEnvironment.json file
-func parseHandlerEnv() (vmextension.HandlerEnvironment, error) {
-	var he vmextension.HandlerEnvironment
-	dir, err := util.ScriptDir()
-	if err != nil {
-		return he, err
-	}
-
-	handlerEnvPath := filepath.Join(dir, "..", HandlerEnv)
-	b, err := ioutil.ReadFile(handlerEnvPath)
-	if err != nil {
-		return he, fmt.Errorf("failed to read config: %v", err)
-	}
-	return vmextension.ParseHandlerEnv(b)
 }
 
 // reportStatus saves operation status to the status file for the extension.

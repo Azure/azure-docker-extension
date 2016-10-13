@@ -8,18 +8,13 @@ import (
 )
 
 func Test_NewStatus(t *testing.T) {
-	dir, err := ioutil.TempDir(os.TempDir(), "test")
+	dir, err := ioutil.TempDir("", "")
 	defer os.RemoveAll(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	s := NewStatus(StatusSuccess, "op", "msg")
-	if err := s.Save(dir, 2); err != nil {
-		t.Fatal(err)
-	}
-
-	// write once more to ensure truncation
 	if err := s.Save(dir, 2); err != nil {
 		t.Fatal(err)
 	}

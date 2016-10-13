@@ -19,3 +19,11 @@ func (c CentOSDriver) UninstallDocker() error {
 }
 
 func (c CentOSDriver) DockerComposeDir() string { return "/usr/local/bin" }
+
+func (c CentOSDriver) BaseOpts() []string {
+	// centos socket activation is removed from get.docker.com installation script
+	// therefore we don't use -H=fd:// on centos. See more context here:
+	// - https://github.com/docker/docker/issues/23793
+	// - https://github.com/docker/docker/pull/24804
+	return []string{"-H=unix://"}
+}

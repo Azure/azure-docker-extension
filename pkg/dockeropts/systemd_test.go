@@ -19,7 +19,7 @@ After=network.target docker.socket
 Requires=docker.socket
 
 [Service]
-ExecStart=/usr/bin/docker -d -H fd://
+ExecStart=/usr/bin/dockerd -H=fd://
 MountFlags=slave
 LimitNOFILE=1048576
 LimitNPROC=1048576
@@ -35,7 +35,7 @@ After=network.target docker.socket
 Requires=docker.socket
 
 [Service]
-ExecStart=/usr/bin/docker --tlsverify
+ExecStart=/usr/bin/dockerd --tlsverify
 MountFlags=slave
 LimitNOFILE=1048576
 LimitNPROC=1048576

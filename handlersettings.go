@@ -54,10 +54,14 @@ type DockerHandlerSettings struct {
 }
 
 func parseSettings(configFolder string) (*DockerHandlerSettings, error) {
+	pubSettingsJSON, protSettingsJSON, err := vmextension.ReadSettings(configFolder)
+	if err != nil {
+		return nil, fmt.Errorf("error reading handler settings: %v", err)
+	}
+
 	var pub publicSettings
 	var prot protectedSettings
-
-	if err := vmextension.UnmarshalHandlerSettings(configFolder, &pub, &prot); err != nil {
+	if err := vmextension.UnmarshalHandlerSettings(pubSettingsJSON, protSettingsJSON, &pub, &prot); err != nil {
 		return nil, fmt.Errorf("error parsing handler settings: %v", err)
 	}
 	return &DockerHandlerSettings{pub, prot}, nil

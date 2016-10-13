@@ -12,7 +12,7 @@ import (
 type SystemdUnitEditor struct{}
 
 func (e SystemdUnitEditor) ChangeOpts(contents, args string) (string, error) {
-	cmd := fmt.Sprintf("ExecStart=/usr/bin/docker %s", args)
+	cmd := fmt.Sprintf("ExecStart=/usr/bin/dockerd %s", args)
 	r := regexp.MustCompile("ExecStart=.*")
 
 	if r.FindString(contents) == "" {

@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- This XML file is used by Extension Deployment Pipeline (EDP) which
+     populates <MediaLink> and <Regions> elements appropriately -->
+<ExtensionImage xmlns="http://schemas.microsoft.com/windowsazure">
+  <!-- Caution: Ordering of elements in this document matters. -->
+  <ProviderNameSpace>Microsoft.Azure.Extensions</ProviderNameSpace>
+  <Type>DockerExtension</Type>
+  <Version>1.2.0</Version>
+  <Label>Docker Extension for Linux</Label>
+  <HostingResources>VmRole</HostingResources>
+  <MediaLink></MediaLink>
+  <Description>Microsoft Azure Docker Extension for Linux Virtual Machines</Description>
+  <IsInternalExtension>true</IsInternalExtension>
+  <Eula>https://github.com/Azure/azure-docker-extension/blob/master/LICENSE</Eula>
+  <PrivacyUri>http://www.microsoft.com/privacystatement/en-us/OnlineServices/Default.aspx</PrivacyUri>
+  <HomepageUri>https://github.com/Azure/azure-docker-extension</HomepageUri>
+  <IsJsonExtension>true</IsJsonExtension>
+  <SupportedOS>Linux</SupportedOS>
+  <CompanyName>Microsoft</CompanyName>
+  <!--%REGIONS%-->
+</ExtensionImage>
