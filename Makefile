@@ -7,6 +7,7 @@ bundle: clean binary
 	@mkdir -p $(BUNDLEDIR)
 	zip ./$(BUNDLEDIR)/$(BUNDLE) ./$(BINDIR)/$(BIN)
 	zip -j ./$(BUNDLEDIR)/$(BUNDLE) ./metadata/HandlerManifest.json
+	zip -j ./$(BUNDLEDIR)/$(BUNDLE) ./metadata/manifest.xml
 	zip ./$(BUNDLEDIR)/$(BUNDLE) ./scripts/run-in-background.sh
 	@echo "OK: Use $(BUNDLEDIR)/$(BUNDLE) to publish the extension."
 binary:
