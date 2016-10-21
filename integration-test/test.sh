@@ -3,21 +3,33 @@ set -eou pipefail
 IFS=$'\n\t'
 
 # these flighting values should match Makefile
-readonly TEST_SUBS="c3dfd792-49a4-4b06-80fc-6fc6d06c4742"
-readonly TEST_REGION="Brazil South"
+readonly TEST_SUBS_AZURE="c3dfd792-49a4-4b06-80fc-6fc6d06c4742"
+readonly TEST_REGION_AZURE="Brazil South"
+
+readonly TEST_SUBS_AZURE_CHINA="cc1624c7-3f1d-4ed3-a855-668a86e96ad8"
+readonly TEST_REGION_AZURE_CHINA="China East"
 
 # make docker-cli send a lower version number so that we can
 # test old images (if client>newer, docker engine rejects the request)
 readonly DOCKER_REMOTE_API_VERSION=1.20
 
 # supported images (add/update them as new major versions come out)
-readonly DISTROS=(
+readonly DISTROS_AZURE=(
 	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-899.15.0" \
 	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Alpha-1122.0.0" \
 	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20151117-en-us-30GB" \
 	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20160516.1-en-us-30GB" \
 	"5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-71-20150731" \
 	"5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-72n-20160629"
+	)
+
+readonly DISTROS_AZURE_CHINA=(
+	"a54f4e2924a249fd94ad761b77c3e83d__CoreOS-Alpha-1192.0.0" \
+	"a54f4e2924a249fd94ad761b77c3e83d__CoreOS-Stable-1122.2.0" \
+	"b549f4301d0b4295b8e76ceb65df47d4__Ubuntu-14_04_3-LTS-amd64-server-20160627-en-us-30GB" \
+	"b549f4301d0b4295b8e76ceb65df47d4__Ubuntu-16_04-LTS-amd64-server-20160627-en-us-30GB" \
+	"f1179221e23b4dbb89e39d70e5bc9e72__OpenLogic-CentOS-71-20160329" \
+	"f1179221e23b4dbb89e39d70e5bc9e72__OpenLogic-CentOS-72-20160617"
 	)
 
 # Test constants
@@ -28,11 +40,18 @@ readonly VM_PREFIX=dockerextensiontest-
 readonly VM_USER=azureuser
 readonly EXTENSION_NAME=DockerExtension
 readonly EXTENSION_PUBLISHER=Microsoft.Azure.Extensions
-readonly EXTENSION_CONFIG=extensionconfig/public.json
+readonly EXTENSION_CONFIG_AZURE=extensionconfig/public.json
+readonly EXTENSION_CONFIG_AZURE_CHINA=extensionconfig/public-azurechina.json
 readonly EXTENSION_CONFIG_PROT=extensionconfig/protected.json
 
 # Global variables
 expected_extension_version=
+distros=
+busybox_image_name=
+extension_public_config=
+domain_name=
+test_subs=
+test_region=
 
 ### Functions
 
@@ -84,15 +103,15 @@ intro() {
 	4. Wait until the VMs reach the goal state provided by $EXTENSION_NAME. 
 	5. Clean up VMs.
 
-	Using test subscription: $TEST_SUBS
-	Staging region to deploy VMs: $TEST_REGION
+	Using test subscription: $test_subs
+	Staging region to deploy VMs: $test_region
 
 	EOF
 }
 
 set_subs() {
-	log "Setting subscription to $TEST_SUBS..."
-	azure account set $TEST_SUBS 1>/dev/null
+	log "Setting subscription to $test_subs..."
+	azure account set $test_subs 1>/dev/null
 }
 
 try_cli() {
@@ -136,15 +155,15 @@ print_distros() {
 	log "Distro images to be tested:"
 
 	local d
-	for d in "${DISTROS[@]}"; do
+	for d in "${distros[@]}"; do
 		log " - $(trim_publisher $d)"
 	done
-	log "Total: ${#DISTROS[@]} VM images."
+	log "Total: ${#distros[@]} VM images."
 }
 
 vm_fqdn() {
 	local name=$1
-	echo "$name.cloudapp.net"	
+	echo "$name.$domain_name"	
 }
 
 create_vms() {
@@ -152,16 +171,16 @@ create_vms() {
 	print_distros
 
 	local key=$(ssh_pub_key)
-	local vm_count=${#DISTROS[@]}
+	local vm_count=${#distros[@]}
 	local vm_names=$(parallel -j$CONCURRENCY echo $VM_PREFIX{} ::: $(seq 1 $vm_count))
 
 
 	log "Creating test VMs in parallel..."
 
 	# Print commands to be executed, then execute them
-	local cmd="azure vm create {1} {2} -e 22 -l '$TEST_REGION' --no-ssh-password --ssh-cert '$key' $VM_USER"
-	parallel --dry-run -j$CONCURRENCY --xapply $cmd ::: ${vm_names[@]} ::: ${DISTROS[@]}
-	parallel -j$CONCURRENCY --xapply $cmd 1>/dev/null ::: ${vm_names[@]} ::: ${DISTROS[@]}
+	local cmd="azure vm create {1} {2} -e 22 -l '$test_region' --no-ssh-password --ssh-cert '$key' $VM_USER"
+	parallel --dry-run -j$CONCURRENCY --xapply $cmd ::: ${vm_names[@]} ::: ${distros[@]}
+	parallel -j$CONCURRENCY --xapply $cmd 1>/dev/null ::: ${vm_names[@]} ::: ${distros[@]}
 
 	log "Opening up ports in parallel..."
 	local ports=( 80 2376 )
@@ -201,7 +220,7 @@ parse_minor_version() {
 }
 
 add_extension_to_vms() {
-	local pub_config="$SCRIPT_DIR/$EXTENSION_CONFIG"
+	local pub_config="$SCRIPT_DIR/$extension_public_config"
 	local prot_config="$SCRIPT_DIR/$EXTENSION_CONFIG_PROT"
 
 	# To use internal version, MAJOR.MINOR must be specified; not '*' or 'MAJOR.*'
@@ -302,7 +321,7 @@ validate_extension_version() {
 	# Find out what version of extension is installed by running
 	# a Docker container with /var/lib/waagent mounted
 	local docker_env=$(docker_cli_env $fqdn)
-	local docker_cmd="docker --tls run --rm -i -v /var/lib/waagent:/agent busybox ls -1 /agent | grep '^$prefix'"
+	local docker_cmd="docker --tls run --rm -i -v /var/lib/waagent:/agent ${busybox_image_name} ls -1 /agent | grep '^$prefix'"
 
 	echo "+ $docker_env $docker_cmd"
 	local version="$(eval $docker_env $docker_cmd 2>/dev/null | sed "s/^$prefix//g")"
@@ -324,7 +343,7 @@ validate_env() {
 	local env_val=$3
 
 	local docker_env=$(docker_cli_env $fqdn)
-	local docker_cmd="docker --tls run --rm -i -v /test:/test busybox cat /test/env.txt"
+	local docker_cmd="docker --tls run --rm -i -v /test:/test ${busybox_image_name} cat /test/env.txt"
 
 	log "Validating environment variable '$env_key'."
 	echo "+ $docker_env $docker_cmd"
@@ -341,8 +360,8 @@ validate_env() {
 			echo "$output"
 			exit 1
 		fi
-		(( i++ ))
-		print '.'
+		i=$((i+1))
+		printf '.'
 		sleep 5
 	done
 }
@@ -407,9 +426,35 @@ read_version() {
 	fi
 }
 
+read_environment() {
+	read -p "Enter the test environment name (e.g. AzureCloud, AzureChinaCloud. The default is AzureCloud): " test_environment
+	case "$test_environment" in
+		"" | "AzureCloud")
+			distros=( "${DISTROS_AZURE[@]}" )
+			extension_public_config=$EXTENSION_CONFIG_AZURE
+			busybox_image_name="busybox"
+			domain_name="cloudapp.net"
+			test_subs=$TEST_SUBS_AZURE
+			test_region=$TEST_REGION_AZURE
+			;;
+		"AzureChinaCloud")
+			distros=( "${DISTROS_AZURE_CHINA[@]}" )
+			extension_public_config=$EXTENSION_CONFIG_AZURE_CHINA
+			busybox_image_name="mirror.azure.cn:5000/library/busybox"
+			domain_name="chinacloudapp.cn"
+			test_subs=$TEST_SUBS_AZURE_CHINA
+			test_region=$TEST_REGION_AZURE_CHINA
+			;;
+		*)
+			err "Invalid environment name"
+			exit 1
+	esac
+}
+
 check_deps
 intro
 read_version
+read_environment
 check_asm
 set_subs
 try_cli
