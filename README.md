@@ -66,8 +66,7 @@ advanced one like this:
 	"compose-environment": {
 		"COMPOSE_PROJECT_NAME": "blog",
 		"COMPOSE_HTTP_TIMEOUT": "600"
-	},
-	"azure-environment": "AzureChinaCloud"
+	}
 }
 ```
 

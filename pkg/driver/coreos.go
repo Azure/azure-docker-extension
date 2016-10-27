@@ -16,7 +16,7 @@ type CoreOSDriver struct {
 	systemdBaseDriver
 }
 
-func (c CoreOSDriver) InstallDocker(azureEnv string) error {
+func (c CoreOSDriver) InstallDocker(installCmd string) error {
 	log.Println("CoreOS: docker already installed, noop")
 	return nil
 }

@@ -43,14 +43,14 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		return err
 	}
 
-	env := ""
+	dockerInstallCmd := ""
 	composeUrl := ""
 	switch settings.AzureEnv {
 		case "AzureChinaCloud":
-			env = "AzureChinaCloud"
+			dockerInstallCmd = "curl -sSL https://mirror.azure.cn/repo/install-docker-engine.sh | sh -s -- --mirror AzureChinaCloud"
 			composeUrl = composeUrlAzureChina
 		case "AzureCloud", "":
-			env = "AzureCloud"
+			dockerInstallCmd = "curl -sSL https://get.docker.com/ | sh"
 			composeUrl = composeUrlGlobal
 		default:
 			return fmt.Errorf("invalid environment name: %s", settings.AzureEnv)
@@ -80,7 +80,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		)
 
 		for nRetries > 0 {
-			if err := d.InstallDocker(env); err != nil {
+			if err := d.InstallDocker(dockerInstallCmd); err != nil {
 				nRetries--
 				if nRetries == 0 {
 					return err

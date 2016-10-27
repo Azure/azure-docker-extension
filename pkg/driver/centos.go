@@ -1,7 +1,6 @@
 package driver
 
 import (
-	"fmt"
 	"github.com/Azure/azure-docker-extension/pkg/executil"
 )
 
@@ -11,15 +10,8 @@ type CentOSDriver struct {
 	systemdUnitOverwriteDriver
 }
 
-func (c CentOSDriver) InstallDocker(azureEnv string) error {
-	switch azureEnv {
-		case "AzureCloud":
-			return executil.ExecPipe("/bin/sh", "-c", "curl -sSL https://get.docker.com/ | sh")
-		case "AzureChinaCloud":
-			return executil.ExecPipe("/bin/sh", "-c", "curl -sSL https://mirror.azure.cn/repo/install-docker-engine.sh | sh -s -- --mirror AzureChinaCloud")
-		default:
-			return fmt.Errorf("invalid environment name %s", azureEnv)
-	}
+func (c CentOSDriver) InstallDocker(installCmd string) error {
+	return executil.ExecPipe("/bin/sh", "-c", installCmd)
 }
 
 func (c CentOSDriver) UninstallDocker() error {
