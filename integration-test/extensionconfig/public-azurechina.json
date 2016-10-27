@@ -1,0 +1,26 @@
+{
+	"docker" : {
+		"port" : "2376",
+		"options" : [
+			"--label",
+			"foo=bar"
+			]
+	},
+	"compose" : {
+		"envdump" : {
+			"image" : "mirror.azure.cn:5000/library/busybox",
+			"volumes": ["/test:/test"],
+			"environment": ["COMPOSE_PROJECT_NAME", "SECRET_KEY"],
+			"command": "/bin/sh -c 'env > /test/env.txt'"
+		},
+		"web" : { 
+			"image" : "mirror.azure.cn:5000/library/nginx",
+			"restart" : "always",
+			"ports" : ["80:80"]
+		}
+	},
+	"compose-environment": {
+		"COMPOSE_PROJECT_NAME": "test"
+	},
+	"azure-environment": "AzureChinaCloud"
+}
