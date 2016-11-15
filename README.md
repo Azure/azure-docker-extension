@@ -199,6 +199,10 @@ If you are going to open an issue, please provide these log files.
 ### Changelog
 
 ```
+# 1.2.1 (2016-11-15) (released in Azure China only)
+- Add support for Azure China by modifying the download URLs to point to the
+  mirrors hosted by mirror.azure.cn (gh#112)
+
 # 1.2.0 (2016-08-19)
 - Fix: On CentOS start dockerd as -H=unix:// instead of -H=fd:// as get.docker.com
   install script has removed socket activation. (gh#104)
