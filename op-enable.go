@@ -22,7 +22,8 @@ import (
 )
 
 const (
-	composeUrl         = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
+	composeUrlGlobal     = "https://github.com/docker/compose/releases/download/1.6.2/docker-compose-Linux-x86_64"
+	composeUrlAzureChina = "https://mirror.azure.cn/docker-toolbox/linux/compose/1.6.2/docker-compose-Linux-x86_64"
 	composeBin         = "docker-compose"
 	composeTimeoutSecs = 600
 
@@ -37,6 +38,24 @@ const (
 )
 
 func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
+	settings, err := parseSettings(he.HandlerEnvironment.ConfigFolder)
+	if err != nil {
+		return err
+	}
+
+	dockerInstallCmd := ""
+	composeUrl := ""
+	switch settings.AzureEnv {
+		case "AzureChinaCloud":
+			dockerInstallCmd = "curl -sSL https://mirror.azure.cn/repo/install-docker-engine.sh | sh -s -- --mirror AzureChinaCloud"
+			composeUrl = composeUrlAzureChina
+		case "AzureCloud", "":
+			dockerInstallCmd = "curl -sSL https://get.docker.com/ | sh"
+			composeUrl = composeUrlGlobal
+		default:
+			return fmt.Errorf("invalid environment name: %s", settings.AzureEnv)
+	}
+
 	// Install docker daemon
 	log.Printf("++ install docker")
 	if _, err := exec.LookPath("docker"); err == nil {
@@ -61,7 +80,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		)
 
 		for nRetries > 0 {
-			if err := d.InstallDocker(); err != nil {
+			if err := d.InstallDocker(dockerInstallCmd); err != nil {
 				nRetries--
 				if nRetries == 0 {
 					return err
@@ -78,7 +97,7 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 
 	// Install docker-compose
 	log.Printf("++ install docker-compose")
-	if err := installCompose(composeBinPath(d)); err != nil {
+	if err := installCompose(composeBinPath(d), composeUrl); err != nil {
 		return fmt.Errorf("error installing docker-compose: %v", err)
 	}
 	log.Printf("-- install docker-compose")
@@ -94,11 +113,6 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 		return err
 	}
 	log.Printf("-- add user to docker group")
-
-	settings, err := parseSettings(he.HandlerEnvironment.ConfigFolder)
-	if err != nil {
-		return err
-	}
 
 	// Install docker remote access certs
 	log.Printf("++ setup docker certs")
@@ -146,9 +160,9 @@ func enable(he vmextension.HandlerEnvironment, d driver.DistroDriver) error {
 	return nil
 }
 
-// installCompose download docker-compose and saves to the specified path if it
+// installCompose download docker-compose from given url and saves to the specified path if it
 // is not already installed.
-func installCompose(path string) error {
+func installCompose(path string, url string) error {
 	// Check if already installed at path.
 	if ok, err := util.PathExists(path); err != nil {
 		return err
@@ -168,13 +182,13 @@ func installCompose(path string) error {
 		}
 	}
 
-	log.Printf("Downloading compose from %s", composeUrl)
-	resp, err := http.Get(composeUrl)
+	log.Printf("Downloading compose from %s", url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error downloading docker-compose: %v", err)
 	}
 	if resp.StatusCode/100 != 2 {
-		return fmt.Errorf("response status code from %s: %s", composeUrl, resp.Status)
+		return fmt.Errorf("response status code from %s: %s", url, resp.Status)
 	}
 	defer resp.Body.Close()
 

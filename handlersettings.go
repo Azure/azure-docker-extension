@@ -11,6 +11,7 @@ type publicSettings struct {
 	Docker      dockerEngineSettings   `json:"docker"`
 	ComposeJson map[string]interface{} `json:"compose"`
 	ComposeEnv  map[string]string      `json:"compose-environment"`
+	AzureEnv    string                 `json:"azure-environment"`
 }
 
 // protectedSettings is the type decoded and deserialized from protected

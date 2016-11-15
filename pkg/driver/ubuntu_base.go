@@ -6,8 +6,8 @@ import (
 
 type ubuntuBaseDriver struct{}
 
-func (u ubuntuBaseDriver) InstallDocker() error {
-	return executil.ExecPipe("/bin/sh", "-c", "wget -qO- https://get.docker.com/ | sh")
+func (u ubuntuBaseDriver) InstallDocker(installCmd string) error {
+	return executil.ExecPipe("/bin/sh", "-c", installCmd)
 }
 
 func (u ubuntuBaseDriver) UninstallDocker() error {

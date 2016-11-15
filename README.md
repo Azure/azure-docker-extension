@@ -39,6 +39,8 @@ this:
   security or orchestrator agents. **Please do not manage your containers through
   this feature.** 
 * `compose-environment` (optional, JSON object) [Environment variables for docker-compose][compose-env].
+* `azure-environment` (optional, string) Azure environment. Valid values are "AzureCloud"
+  and "AzureChinaCloud". The default is "AzureCloud".
 
 [compose-env]: https://docs.docker.com/compose/reference/envvars/
 

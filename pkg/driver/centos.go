@@ -10,8 +10,8 @@ type CentOSDriver struct {
 	systemdUnitOverwriteDriver
 }
 
-func (c CentOSDriver) InstallDocker() error {
-	return executil.ExecPipe("/bin/sh", "-c", "curl -sSL https://get.docker.com/ | sh")
+func (c CentOSDriver) InstallDocker(installCmd string) error {
+	return executil.ExecPipe("/bin/sh", "-c", installCmd)
 }
 
 func (c CentOSDriver) UninstallDocker() error {
