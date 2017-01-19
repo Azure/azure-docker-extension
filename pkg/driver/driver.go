@@ -22,7 +22,7 @@ type DistroDriver interface {
 }
 
 func GetDriver(d distro.Info) (DistroDriver, error) {
-	if d.Id == "CoreOS" {
+	if d.Id == "CoreOS" || d.Id == "\"Container Linux by CoreOS\"" {
 		return CoreOSDriver{}, nil
 	} else if d.Id == "Ubuntu" {
 		parts := strings.Split(d.Release, ".")
