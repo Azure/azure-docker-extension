@@ -199,6 +199,9 @@ If you are going to open an issue, please provide these log files.
 ### Changelog
 
 ```
+# 1.2.2 (2017-01-21)
+- Add suport for the CoreOS rename (gh#116).
+
 # 1.2.1 (2016-11-15) (released in Azure China only)
 - Add support for Azure China by modifying the download URLs to point to the
   mirrors hosted by mirror.azure.cn (gh#112)
