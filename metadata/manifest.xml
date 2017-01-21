@@ -5,7 +5,7 @@
   <!-- Caution: Ordering of elements in this document matters. -->
   <ProviderNameSpace>Microsoft.Azure.Extensions</ProviderNameSpace>
   <Type>DockerExtension</Type>
-  <Version>1.2.1</Version>
+  <Version>1.2.2</Version>
   <Label>Docker Extension for Linux</Label>
   <HostingResources>VmRole</HostingResources>
   <MediaLink></MediaLink>
