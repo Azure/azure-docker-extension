@@ -7,3 +7,5 @@ azure-docker-extension
 
 # integration test ssh keys
 integration-test/id_rsa**
+integration-test/dockercerts*
+integration-test/extensionconfig/protected.json
