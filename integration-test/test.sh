@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 # these flighting values should match Makefile
 readonly TEST_SUBS_AZURE="c3dfd792-49a4-4b06-80fc-6fc6d06c4742"
-readonly TEST_REGION_AZURE="Brazil South"
+readonly TEST_REGION_AZURE="South Central US"
 
 readonly TEST_SUBS_AZURE_CHINA="cc1624c7-3f1d-4ed3-a855-668a86e96ad8"
 readonly TEST_REGION_AZURE_CHINA="China East"
@@ -15,13 +15,12 @@ readonly DOCKER_REMOTE_API_VERSION=1.20
 
 # supported images (add/update them as new major versions come out)
 readonly DISTROS_AZURE=(
-	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-899.15.0" \
-	"2b171e93f07c4903bcad35bda10acf22__CoreOS-Alpha-1122.0.0" \
-	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_3-LTS-amd64-server-20151117-en-us-30GB" \
-	"b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20160516.1-en-us-30GB" \
-	"5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-71-20150731" \
-	"5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-72n-20160629"
-	)
+        "2b171e93f07c4903bcad35bda10acf22__CoreOS-Stable-1235.6.0" \
+        "2b171e93f07c4903bcad35bda10acf22__CoreOS-Alpha-1298.1.0" \
+        "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-14_04_5-LTS-amd64-server-20170110-en-us-30GB" \
+        "b39f27a8b8c64d52b05eac6a62ebad85__Ubuntu-16_04-LTS-amd64-server-20170113-en-us-30GB" \
+        "5112500ae3b842c8b9c604889f8753c3__OpenLogic-CentOS-73-20161221"
+)
 
 readonly DISTROS_AZURE_CHINA=(
 	"a54f4e2924a249fd94ad761b77c3e83d__CoreOS-Alpha-1192.0.0" \
@@ -30,7 +29,7 @@ readonly DISTROS_AZURE_CHINA=(
 	"b549f4301d0b4295b8e76ceb65df47d4__Ubuntu-16_04-LTS-amd64-server-20160627-en-us-30GB" \
 	"f1179221e23b4dbb89e39d70e5bc9e72__OpenLogic-CentOS-71-20160329" \
 	"f1179221e23b4dbb89e39d70e5bc9e72__OpenLogic-CentOS-72-20160617"
-	)
+)
 
 # Test constants
 readonly SCRIPT_DIR=$(dirname $0)
@@ -83,7 +82,7 @@ check_asm() {
 		azure CLI not in ASM mode (required for testing). Run:
 
 		  azure config mode asm
-		
+
 		NOTE: internal versions in PIR don't propogate to ARM stack until they're
 		published to PROD globally, hence 'asm')
 		EOF
@@ -131,6 +130,10 @@ ssh_pub_key() {
 	echo "$(ssh_key).pub"
 }
 
+generate_docker_certs() {
+    ./gen_docker_certs.sh
+}
+
 generate_ssh_keys() {
 	local key=$(ssh_key)
 	local pub=$(ssh_pub_key)
@@ -163,7 +166,7 @@ print_distros() {
 
 vm_fqdn() {
 	local name=$1
-	echo "$name.$domain_name"	
+	echo "$name.$domain_name"
 }
 
 create_vms() {
@@ -262,7 +265,7 @@ wait_for_docker() {
 	local docker_cmd="docker --tls info"
 	log "Waiting for Docker engine on $addr..."
 	echo "+ $docker_env $docker_cmd"
-	
+
 	while true; do
 		set +e # ignore errors b/c the following command will retry
 		eval $docker_env $docker_cmd 1>/dev/null 2>&1
@@ -276,6 +279,7 @@ wait_for_docker() {
 			log "Authenticated to docker engine at $addr."
 			# Check if docker.options in public.json took effect
 			local docker_info_out="$(eval $docker_env $docker_cmd 2>&1)"
+                        log "$docker_info_out"
 			if [[ "$docker_info_out" != *"foo=bar"* ]]; then
 				err "Docker engine label (foo=bar) specified in extension configuration did not take effect."
 				log "docker info output:"
@@ -295,7 +299,7 @@ wait_for_container() {
 	log "Waiting for web container on $addr..."
 	local curl_cmd="curl -sILfo/dev/null $addr"
 	echo "+ $curl_cmd"
-	
+
 	while true; do
 		set +e # ignore errors b/c the following command will retry
 		eval $curl_cmd 2>&1 1>/dev/null
@@ -314,7 +318,7 @@ wait_for_container() {
 validate_extension_version() {
 	local fqdn=$1
 	log "Validating extension version on VM."
-	
+
 	# Search for file Microsoft.Azure.Extensions.DockerExtension-{version}
 	local prefix="${EXTENSION_PUBLISHER}.${EXTENSION_NAME}-"
 
@@ -329,7 +333,7 @@ validate_extension_version() {
 		err "Could not locate $EXTENSION_NAME version."
 		exit 1
 	fi
-	
+
 	if [[ "$version" != "$expected_extension_ver" ]]; then
 		err "Wrong $EXTENSION_NAME encountered: '$version' (expected: '$expected_extension_ver')."
 		exit 1
@@ -390,7 +394,7 @@ validate_container_prefixes() {
 
 vm_ssh_cmd() {
 	local fqdn=$1
-	echo "ssh -i '$(ssh_key)' ${VM_USER}@${fqdn}"
+	echo "ssh -o \"StrictHostKeyChecking no\" -i '$(ssh_key)' ${VM_USER}@${fqdn}"
 }
 
 validate_vm() {
@@ -411,7 +415,7 @@ validate_vm() {
 }
 
 validate_vms() {
-	log "Validating VMs..."		
+	log "Validating VMs..."
 	local vms=$(get_vms)
 	for vm in $vms; do
 		validate_vm "$vm"
@@ -419,7 +423,7 @@ validate_vms() {
 }
 
 read_version() {
-	read -p "Expected $EXTENSION_NAME version in VMs (e.g. 1.0.1512030601): " expected_extension_ver
+	read -p "Expected $EXTENSION_NAME version in VMs (e.g. 1.2.2): " expected_extension_ver
 	if [[ -z "$expected_extension_ver" ]]; then
 		err "Empty string passed"
 		exit 1
@@ -460,6 +464,7 @@ set_subs
 try_cli
 
 delete_vms
+generate_docker_certs
 create_vms
 add_extension_to_vms
 validate_vms
