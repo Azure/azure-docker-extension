@@ -1,3 +1,10 @@
+# :warning: IMPORTANT :warning:
+**Docker extension for Linux is deprecated.**
+
+DockerExtension is deprecated and will be retired November 2018.
+
+We believe the are better alternatives to this extension.  The extension merely installs Docker, so alteratives such as cloud-init or the CustomScript extension are a better way to install the Docker version of choice.
+
 # Azure Virtual Machine Extension for Docker
 
 This repository contains source code for the Microsoft Azure Docker Virtual
